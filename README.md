@@ -7,4 +7,4 @@
 + add glu.h and gl.h to ../include/GL/ (you can find these two files from internet or Windows SDK)  
 + clone this to your project folder   
 
-> glu.h and gl.h may find in mesa package (a dev tool for UNIX system) but this is not work for me.
+> glu.h and gl.h may find in mesa package (a dev tool for UNIX system) but this doesn't work for me.
