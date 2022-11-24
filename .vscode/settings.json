@@ -1,4 +1,5 @@
 {
+    "better-comments.multilineComments": true,
     "files.defaultLanguage": "cpp", 
     "editor.formatOnType": true, 
     "editor.snippetSuggestions": "top",
@@ -23,7 +24,10 @@
     ],
     "clang.completion.enable": true,
     "files.associations": {
-        "glut.h": "c",
-        "freeglut_std.h": "c"
+      "glut.h": "c",
+      "freeglut_std.h": "c",
+      "*.tcc": "c",
+      "compare": "c",
+      "random": "c"
     }
   }
