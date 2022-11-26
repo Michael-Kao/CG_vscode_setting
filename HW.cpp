@@ -62,6 +62,7 @@ double Eye[3] = {0.0, 0.0, 30.0}, Focus[3] = {0.0, 0.0, 0.0},
 float u[3][3] = {{1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}};
 float eye[3];
 float cv, sv; /* cos(5.0) and sin(5.0) */
+float my_near = 1.5, my_far = 50.0;
 
 /* ----Drawing syle----*/
 int style = 0;
@@ -111,6 +112,65 @@ void myinit()
     glFlush(); /*Enforce window system display the results*/
 }
 
+void draw_viewvolume(){
+    float h_near, h_far, w_near, w_far, f_change[3], n_change[3];
+    h_near = 2 * tan(90.0 / 2) * my_near;
+    w_near = h_near * width / height;
+    h_far = 2 * tan(90.0 / 2) * my_far;
+    w_far = h_far * width / height;
+    f_change[0] = u[2][0] * my_far;
+    f_change[1] = u[2][1] * my_far;
+    f_change[2] = u[2][2] * my_far;
+    n_change[0] = u[2][0] * my_near;
+    n_change[1] = u[2][1] * my_near;
+    n_change[2] = u[2][2] * my_near;
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    glColor3f(1.0, 0.0, 0.0);
+    glBegin(GL_TRIANGLES);
+    glVertex3f(eye[0], eye[1], eye[2]);
+    glVertex3f(eye[0] + w_near / 2 - n_change[0], eye[1] + h_near / 2 - n_change[1], eye[2] - my_near - n_change[2]);
+    glVertex3f(eye[0] - w_near / 2 - n_change[0], eye[1] + h_near / 2 - n_change[1], eye[2] - my_near - n_change[2]);
+    glEnd();
+    glBegin(GL_TRIANGLES);
+    glVertex3f(eye[0], eye[1], eye[2]);
+    glVertex3f(eye[0] + w_near / 2 - n_change[0], eye[1] - h_near / 2 - n_change[1], eye[2] - my_near - n_change[2]);
+    glVertex3f(eye[0] + w_near / 2 - n_change[0], eye[1] + h_near / 2 - n_change[1], eye[2] - my_near - n_change[2]);
+    glEnd();
+    glBegin(GL_TRIANGLES);
+    glVertex3f(eye[0], eye[1], eye[2]);
+    glVertex3f(eye[0] - w_near / 2 - n_change[0], eye[1] - h_near / 2 - n_change[1], eye[2] - my_near - n_change[2]);
+    glVertex3f(eye[0] + w_near / 2 - n_change[0], eye[1] - h_near / 2 - n_change[1], eye[2] - my_near - n_change[2]);
+    glEnd();
+    glBegin(GL_TRIANGLES);
+    glVertex3f(eye[0], eye[1], eye[2]);
+    glVertex3f(eye[0] - w_near / 2 - n_change[0], eye[1] - h_near / 2 - n_change[1], eye[2] - my_near - n_change[2]);
+    glVertex3f(eye[0] - w_near / 2 - n_change[0], eye[1] + h_near / 2 - n_change[1], eye[2] - my_near - n_change[2]);
+    glEnd();
+
+    glColor3f(0.0, 0.0, 1.0);
+    glBegin(GL_TRIANGLES);
+    glVertex3f(eye[0], eye[1], eye[2]);
+    glVertex3f(eye[0] + w_far / 2 - f_change[0], eye[1] + h_far / 2 - f_change[1], eye[2] - my_far - f_change[2]);
+    glVertex3f(eye[0] - w_far / 2 - f_change[0], eye[1] + h_far / 2 - f_change[1], eye[2] - my_far - f_change[2]);
+    glEnd();
+    glBegin(GL_TRIANGLES);
+    glVertex3f(eye[0], eye[1], eye[2]);
+    glVertex3f(eye[0] + w_far / 2 - f_change[0], eye[1] - h_far / 2 - f_change[1], eye[2] - my_far - f_change[2]);
+    glVertex3f(eye[0] + w_far / 2 - f_change[0], eye[1] + h_far / 2 - f_change[1], eye[2] - my_far - f_change[2]);
+    glEnd();
+    glBegin(GL_TRIANGLES);
+    glVertex3f(eye[0], eye[1], eye[2]);
+    glVertex3f(eye[0] - w_far / 2 - f_change[0], eye[1] - h_far / 2 - f_change[1], eye[2] - my_far - f_change[2]);
+    glVertex3f(eye[0] + w_far / 2 - f_change[0], eye[1] - h_far / 2 - f_change[1], eye[2] - my_far - f_change[2]);
+    glEnd();
+    glBegin(GL_TRIANGLES);
+    glVertex3f(eye[0], eye[1], eye[2]);
+    glVertex3f(eye[0] - w_far / 2 - f_change[0], eye[1] - h_far / 2 - f_change[1], eye[2] - my_far - f_change[2]);
+    glVertex3f(eye[0] - w_far / 2 - f_change[0], eye[1] + h_far / 2 - f_change[1], eye[2] - my_far - f_change[2]);
+    glEnd();
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+}
+
 /*-------------------------------------------------------
  * Make viewing matrix
  */
@@ -133,13 +193,13 @@ void make_view(int x)
 		break;
 
 	case 1: /* X direction parallel viewing */
-		gluLookAt(30.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
+		gluLookAt(30.0, 0.0, 0.0, Focus[0], Focus[1], Focus[2], 0.0, 1.0, 0.0);
 		break;
 	case 2: /* Y direction parallel viewing */
-		gluLookAt(0.0, 30.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0);
+		gluLookAt(0.0, 30.0, 0.0, Focus[0], Focus[1], Focus[2], 1.0, 0.0, 0.0);
 		break;
 	case 3:
-		gluLookAt(0.0, 0.0, 30.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
+		gluLookAt(0.0, 0.0, 30.0, Focus[0], Focus[1], Focus[2], 0.0, 1.0, 0.0);
 		break;
 	}
 }
@@ -203,6 +263,11 @@ void draw_view()
 	glVertex3f(eye[0], eye[1], eye[2]);
 	glVertex3f(eye[0] + 20.0 * u[2][0], eye[1] + 20.0 * u[2][1], eye[2] + 20.0 * u[2][2]);
 	glEnd();
+
+    glPushMatrix();
+    // glTranslatef(eye[0], eye[1], eye[2]);
+    draw_viewvolume();
+    glPopMatrix();
 }
 
 /*-------------------------------------------------------
@@ -249,20 +314,6 @@ void draw_axes()
     glPopMatrix();
 }
 
-/*-------------------------------------------------------
- * Procedure to draw a polygon as a blade of the windmill
- */
-void draw_blade()
-{
-    glBegin(GL_POLYGON);
-    glVertex3f(0.0, 0.0, 0.0);
-    glVertex3f(1.0, 4.0, 0.0);
-    glVertex3f(1.0, 8.0, 0.0);
-    glVertex3f(-1.0, 8.0, 0.0);
-    glVertex3f(-1.0, 4.0, 0.0);
-    glEnd();
-}
-
 /*--------------------------------------------------------
  * Procedure to draw a cube. The geometrical data of the cube
  * are defined above.
@@ -294,7 +345,9 @@ void draw_floor()
         for (j = -100; j < 100; j++)
         {
             // if ((i + j) % 2 == 0) glColor3f(0.9, 0.9, 0.9);
-            /*else*/ glColor3f(0.3, 0.1, 0.1);
+            /*else*/ 
+            glColor3f(0.3, 0.1, 0.1);
+            // glColor3f(0.0, 0.0, 0.0);
             glBegin(GL_POLYGON);
             glVertex3f(i, 0.0, j);
             glVertex3f(i, 0.0, j + 1);
@@ -334,7 +387,7 @@ void caldown_func()
 // Draw robot
 void draw_robo()
 {
-    draw_floor();
+    // draw_floor();
     glPushMatrix();
     // draw obstacle
     glTranslatef(-5.0, 0.0, 36.0);
@@ -791,14 +844,16 @@ void my_reshape(int w, int h)
     glViewport(0, 0, w, h);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    glOrtho(-40.0, 40.0, -40, 40, 0.0, 120.0);
+    gluPerspective(90.0, (double)w / (double)h, 1.5, 50.0);
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
 }
 
 /*--------------------------------------------------
  * Keyboard callback func. When a 'q' key is pressed,
  * the program is aborted.
  */
-void my_keyboard(unsigned char key, int x, int y)
+void my_keyboard(unsigned char key, int ix, int iy)
 {
     if (key == ' ')
     {
@@ -852,106 +907,255 @@ void my_keyboard(unsigned char key, int x, int y)
             run_speed += 0.4;
         }
     }
-    if (key == 'd' || key == 'D')
-    {
-        D = (D == true) ? false : true;
-        cout << "status: " << D << endl;
-    }
-    if (D)
-    {
-        if (key == 'q')
-        {
-            if ((La_ang - 1) < -180)
-                return;
-            La_ang = (La_ang - 1) % 360;
-        }
-        if (key == 'e')
-        {
-            if ((Ra_ang - 1) < -180)
-                return;
-            Ra_ang = (Ra_ang - 1) % 360;
-        }
-        if (key == 'z')
-        {
-            if ((Lfa_ang - 1) < -120)
-                return;
-            Lfa_ang = (Lfa_ang - 1) % 360;
-        }
-        if (key == 'c')
-        {
-            if ((Rfa_ang - 1) < -120)
-                return;
-            Rfa_ang = (Rfa_ang - 1) % 360;
-        }
-        if (key == '1')
-            test_x -= 0.1;
-        if (key == '2')
-            test_y -= 0.1;
-        if (key == '3')
-            test_z -= 0.1;
-        if (key == '4')
-            ang_x = (ang_x - 1) % 360;
-        if (key == '5')
-            ang_y = (ang_y - 1) % 360;
-        if (key == '6')
-            ang_z = (ang_z - 1) % 360;
-        if (key == '7')
-            r_x = (r_x - 5) % 360;
-        if (key == '8')
-            r_y = (r_y - 5) % 360;
-        if (key == '9')
-            r_z = (r_z - 5) % 360;
-    }
-    else
-    {
-        if (key == 'q')
-        {
-            if ((La_ang + 1) > 30)
-                return;
-            La_ang = (La_ang + 1) % 360;
-        }
-        if (key == 'e')
-        {
-            if ((Ra_ang + 1) > 30)
-                return;
-            Ra_ang = (Ra_ang + 1) % 360;
-        }
-        if (key == 'z')
-        {
-            if ((Lfa_ang + 1) > 0)
-                return;
-            Lfa_ang = (Lfa_ang + 1) % 360;
-        }
-        if (key == 'c')
-        {
-            if ((Rfa_ang + 1) > 0)
-                return;
-            Rfa_ang = (Rfa_ang + 1) % 360;
-        }
-        if(key == '0')
-            style = 0;
-        if (key == '1')
-            style = 1;
-        if (key == '2')
-            style = 2;
-        if (key == '3')
-            style = 3;
-        if (key == '4')
-            style = 4;
-        if (key == '5')
-            ang_y = (ang_y + 1) % 360;
-        if (key == '6')
-            ang_z = (ang_z + 1) % 360;
-        if (key == '7')
-            r_x = (r_x + 5) % 360;
-        if (key == '8')
-            r_y = (r_y + 5) % 360;
-        if (key == '9')
-            r_z = (r_z + 5) % 360;
-    }
-    // cout << "pos: (" << test_x << "," << test_y << "," << test_z << ")  \n";
-    // cout << "angle: (" << ang_x << "," << ang_y << "," << ang_z << ")\n";
-    // cout << "(" << l_calf << "," << r_calf << ")\n";
+    // if (key == 'd' || key == 'D')
+    // {
+    //     D = (D == true) ? false : true;
+    //     cout << "status: " << D << endl;
+    // }
+    // if (D)
+    // {
+    //     if (key == 'q')
+    //     {
+    //         if ((La_ang - 1) < -180)
+    //             return;
+    //         La_ang = (La_ang - 1) % 360;
+    //     }
+    //     if (key == 'e')
+    //     {
+    //         if ((Ra_ang - 1) < -180)
+    //             return;
+    //         Ra_ang = (Ra_ang - 1) % 360;
+    //     }
+    //     if (key == 'z')
+    //     {
+    //         if ((Lfa_ang - 1) < -120)
+    //             return;
+    //         Lfa_ang = (Lfa_ang - 1) % 360;
+    //     }
+    //     if (key == 'c')
+    //     {
+    //         if ((Rfa_ang - 1) < -120)
+    //             return;
+    //         Rfa_ang = (Rfa_ang - 1) % 360;
+    //     }
+    //     if (key == '1')
+    //         test_x -= 0.1;
+    //     if (key == '2')
+    //         test_y -= 0.1;
+    //     if (key == '3')
+    //         test_z -= 0.1;
+    //     if (key == '4')
+    //         ang_x = (ang_x - 1) % 360;
+    //     if (key == '5')
+    //         ang_y = (ang_y - 1) % 360;
+    //     if (key == '6')
+    //         ang_z = (ang_z - 1) % 360;
+    //     if (key == '7')
+    //         r_x = (r_x - 5) % 360;
+    //     if (key == '8')
+    //         r_y = (r_y - 5) % 360;
+    //     if (key == '9')
+    //         r_z = (r_z - 5) % 360;
+    // }
+    // else
+    // {
+    //     if (key == 'q')
+    //     {
+    //         if ((La_ang + 1) > 30)
+    //             return;
+    //         La_ang = (La_ang + 1) % 360;
+    //     }
+    //     if (key == 'e')
+    //     {
+    //         if ((Ra_ang + 1) > 30)
+    //             return;
+    //         Ra_ang = (Ra_ang + 1) % 360;
+    //     }
+    //     if (key == 'z')
+    //     {
+    //         if ((Lfa_ang + 1) > 0)
+    //             return;
+    //         Lfa_ang = (Lfa_ang + 1) % 360;
+    //     }
+    //     if (key == 'c')
+    //     {
+    //         if ((Rfa_ang + 1) > 0)
+    //             return;
+    //         Rfa_ang = (Rfa_ang + 1) % 360;
+    //     }
+        // if(key == '0')
+        //     style = 0;
+        // if (key == '1')
+        //     style = 1;
+        // if (key == '2')
+        //     style = 2;
+        // if (key == '3')
+        //     style = 3;
+        // if (key == '4')
+        //     style = 4;
+        // if (key == '5')
+        //     ang_y = (ang_y + 1) % 360;
+        // if (key == '6')
+        //     ang_z = (ang_z + 1) % 360;
+        // if (key == '7')
+        //     r_x = (r_x + 5) % 360;
+        // if (key == '8')
+        //     r_y = (r_y + 5) % 360;
+        // if (key == '9')
+        //     r_z = (r_z + 5) % 360;
+    // }
+    if (key == '0')
+        style = 0;
+    if (key == '1')
+        style = 1;
+    if (key == '2')
+        style = 2;
+    if (key == '3')
+        style = 3;
+    if (key == '4')
+        style = 4;
+    // Transform the EYE coordinate system
+    int i;
+    float x[3], y[3], z[3];
+
+    if (key == 'u')
+	{
+		eyeDy += 0.5; /* move up */
+		for (i = 0; i < 3; i++)
+			eye[i] -= 0.5 * u[1][i];
+	}
+	else if (key == 'd')
+	{
+		eyeDy += -0.5; /* move down */
+		for (i = 0; i < 3; i++)
+			eye[i] += 0.5 * u[1][i];
+	}
+	else if (key == 'W')
+	{
+		eyeDx += -0.5; /* move left */
+		for (i = 0; i < 3; i++)
+			eye[i] += 0.5 * u[0][i];
+	}
+	else if (key == 'e')
+	{
+		eyeDx += 0.5; /* move right */
+		for (i = 0; i < 3; i++)
+			eye[i] -= 0.5 * u[0][i];
+	}
+	else if (key == 'n')
+	{
+		eyeDz += 0.5; /* zoom in */
+		for (i = 0; i < 3; i++)
+			eye[i] -= 0.5 * u[2][i];
+	}
+	else if (key == 'f')
+	{
+		eyeDz += -0.5; /* zoom out */
+		for (i = 0; i < 3; i++)
+			eye[i] += 0.5 * u[2][i];
+	}
+	else if (key == 'p')
+	{ /* pitching 對X軸旋轉 */ 
+		eyeAngx += 5.0;
+		if (eyeAngx > 360.0)
+			eyeAngx -= 360.0;
+		y[0] = u[1][0] * cv - u[2][0] * sv;
+		y[1] = u[1][1] * cv - u[2][1] * sv;
+		y[2] = u[1][2] * cv - u[2][2] * sv;
+
+		z[0] = u[2][0] * cv + u[1][0] * sv;
+		z[1] = u[2][1] * cv + u[1][1] * sv;
+		z[2] = u[2][2] * cv + u[1][2] * sv;
+
+		for (i = 0; i < 3; i++)
+		{
+			u[1][i] = y[i];
+			u[2][i] = z[i];
+		}
+	}
+	else if (key == 'P')
+	{
+		eyeAngx += -5.0;
+		if (eyeAngx < 0.0)
+			eyeAngx += 360.0;
+		y[0] = u[1][0] * cv + u[2][0] * sv;
+		y[1] = u[1][1] * cv + u[2][1] * sv;
+		y[2] = u[1][2] * cv + u[2][2] * sv;
+
+		z[0] = u[2][0] * cv - u[1][0] * sv;
+		z[1] = u[2][1] * cv - u[1][1] * sv;
+		z[2] = u[2][2] * cv - u[1][2] * sv;
+
+		for (i = 0; i < 3; i++)
+		{
+			u[1][i] = y[i];
+			u[2][i] = z[i];
+		}
+	}
+	else if (key == 'h')
+	{ /* heading 對Y軸旋轉 */
+		eyeAngy += 5.0;
+		if (eyeAngy > 360.0)
+			eyeAngy -= 360.0;
+		for (i = 0; i < 3; i++)
+		{
+			x[i] = cv * u[0][i] - sv * u[2][i];
+			z[i] = sv * u[0][i] + cv * u[2][i];
+		}
+		for (i = 0; i < 3; i++)
+		{
+			u[0][i] = x[i];
+			u[2][i] = z[i];
+		}
+	}
+	else if (key == 'H')
+	{
+		eyeAngy += -5.0;
+		if (eyeAngy < 0.0)
+			eyeAngy += 360.0;
+		for (i = 0; i < 3; i++)
+		{
+			x[i] = cv * u[0][i] + sv * u[2][i];
+			z[i] = -sv * u[0][i] + cv * u[2][i];
+		}
+		for (i = 0; i < 3; i++)
+		{
+			u[0][i] = x[i];
+			u[2][i] = z[i];
+		}
+	}
+	else if (key == 'r')
+	{ /* rolling 對z軸旋轉 */
+		eyeAngz += 5.0;
+		if (eyeAngz > 360.0)
+			eyeAngz -= 360.0;
+		for (i = 0; i < 3; i++)
+		{
+			x[i] = cv * u[0][i] - sv * u[1][i];
+			y[i] = sv * u[0][i] + cv * u[1][i];
+		}
+		for (i = 0; i < 3; i++)
+		{
+			u[0][i] = x[i];
+			u[1][i] = y[i];
+		}
+	}
+	else if (key == 'R')
+	{
+		eyeAngz += -5.0;
+		if (eyeAngz < 0.0)
+			eyeAngz += 360.0;
+		for (i = 0; i < 3; i++)
+		{
+			x[i] = cv * u[0][i] + sv * u[1][i];
+			y[i] = -sv * u[0][i] + cv * u[1][i];
+		}
+		for (i = 0; i < 3; i++)
+		{
+			u[0][i] = x[i];
+			u[1][i] = y[i];
+		}
+	}
     display();
 }
 
