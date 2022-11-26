@@ -8,5 +8,3 @@
 + clone this to your project folder   
 
 > glu.h and gl.h may find in mesa package (a dev tool for UNIX system) but this doesn't work for me.
-
-testing
