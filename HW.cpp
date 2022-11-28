@@ -63,6 +63,9 @@ float u[3][3] = {{1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}};
 float eye[3];
 float cv, sv; /* cos(5.0) and sin(5.0) */
 float my_near = 1.5, my_far = 50.0;
+float ntop, nleft, nright, nbottom;
+float nzoom[4][4] = {{-40.0, 40.0, -40.0, 40}, {-40.0, 40.0, -40.0, 40}, {-40.0, 40.0, -40.0, 40}, {-40.0, 40.0, -40.0, 40}};
+int zoom_mode = 1;
 
 /* ----Drawing syle----*/
 int style = 0;
@@ -108,6 +111,15 @@ void myinit()
     eye[0] = Eye[0];
     eye[1] = Eye[1];
     eye[2] = Eye[2];
+
+    float h_near, w_near;
+    h_near = 2 * tan(90.0 / 2) * my_near;
+    w_near = h_near * width / height;
+    nleft = -w_near / 2;
+    nright = w_near / 2;
+    nbottom = -h_near / 2;
+    ntop = h_near / 2;
+
 
     glFlush(); /*Enforce window system display the results*/
 }
@@ -171,6 +183,61 @@ void draw_viewvolume(){
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 }
 
+void draw_viewvolume2(){
+    float fleft, fright, ftop, fbottom;
+    fleft = nleft * my_far / my_near;
+    fright = nright * my_far / my_near;
+    ftop = ntop * my_far / my_near;
+    fbottom = nbottom * my_far / my_near;
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    glColor3f(1.0, 0.0, 0.0);
+    glBegin(GL_TRIANGLES);
+    glVertex3f(eye[0], eye[1], eye[2]);
+    glVertex3f(eye[0] + nleft, eye[1] + ntop, eye[2] - my_near);
+    glVertex3f(eye[0] + nright, eye[1] + ntop, eye[2] - my_near);
+    glEnd();
+    glBegin(GL_TRIANGLES);
+    glVertex3f(eye[0], eye[1], eye[2]);
+    glVertex3f(eye[0] + nleft, eye[1] + nbottom, eye[2] - my_near);
+    glVertex3f(eye[0] + nleft, eye[1] + ntop, eye[2] - my_near);
+    glEnd();
+    glBegin(GL_TRIANGLES);
+    glVertex3f(eye[0], eye[1], eye[2]);
+    glVertex3f(eye[0] + nright, eye[1] + nbottom, eye[2] - my_near);
+    glVertex3f(eye[0] + nleft, eye[1] + nbottom, eye[2] - my_near);
+    glEnd();
+    glBegin(GL_TRIANGLES);
+    glVertex3f(eye[0], eye[1], eye[2]);
+    glVertex3f(eye[0] + nright, eye[1] + nbottom, eye[2] - my_near);
+    glVertex3f(eye[0] + nright, eye[1] + ntop, eye[2] - my_near);
+    glEnd();
+
+    glColor3f(0.0, 0.0, 1.0);
+    glBegin(GL_TRIANGLES);
+    glVertex3f(eye[0], eye[1], eye[2]);
+    glVertex3f(eye[0] + fleft, eye[1] + ftop, eye[2] - my_far);
+    glVertex3f(eye[0] + fright, eye[1] + ftop, eye[2] - my_far);
+    glEnd();
+    glBegin(GL_TRIANGLES);
+    glVertex3f(eye[0], eye[1], eye[2]);
+    glVertex3f(eye[0] + fleft, eye[1] + fbottom, eye[2] - my_far);
+    glVertex3f(eye[0] + fleft, eye[1] + ftop, eye[2] - my_far);
+    glEnd();
+    glBegin(GL_TRIANGLES);
+    glVertex3f(eye[0], eye[1], eye[2]);
+    glVertex3f(eye[0] + fright, eye[1] + fbottom, eye[2] - my_far);
+    glVertex3f(eye[0] + fleft, eye[1] + fbottom, eye[2] - my_far);
+    glEnd();
+    glBegin(GL_TRIANGLES);
+    glVertex3f(eye[0], eye[1], eye[2]);
+    glVertex3f(eye[0] + fright, eye[1] + fbottom, eye[2] - my_far);
+    glVertex3f(eye[0] + fright, eye[1] + ftop, eye[2] - my_far);
+    glEnd();
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+
+}
+
 /*-------------------------------------------------------
  * Make viewing matrix
  */
@@ -213,19 +280,24 @@ void make_projection(int x)
 	glLoadIdentity();
 	if (x == 4)
 	{
-		gluPerspective(90.0, (double)width / (double)height, 1.5, 50.0);
+        if(zoom_mode){
+            gluPerspective(90.0, (double)width / (double)height, my_near, 50.0);
+        }
+        else{
+            glFrustum(nleft, nright, nbottom, ntop, my_near, my_far);
+        }
 	}
 	else
 	{
-		if (width > height)
-			glOrtho(-40.0, 40.0, -40.0 * (float)height / (float)width,
-					40.0 * (float)height / (float)width,
-					-0.0, 100.0);
-		else
-			glOrtho(-40.0 * (float)width / (float)height,
-					40.0 * (float)width / (float)height, -40.0, 40.0,
-					-0.0, 100.0);
-	}
+        if (width > height)
+            glOrtho(nzoom[x][0], nzoom[x][1], nzoom[x][2] * (float)height / (float)width,
+                    nzoom[x][3] * (float)height / (float)width,
+                    -0.0, 100.0);
+        else
+            glOrtho(nzoom[x][0] * (float)width / (float)height,
+                    nzoom[x][1] * (float)width / (float)height, nzoom[x][2], nzoom[x][3],
+                    -0.0, 100.0);
+    }
 	glMatrixMode(GL_MODELVIEW);
 }
 
@@ -266,7 +338,12 @@ void draw_view()
 
     glPushMatrix();
     // glTranslatef(eye[0], eye[1], eye[2]);
-    draw_viewvolume();
+    if(zoom_mode){
+        draw_viewvolume();
+    }
+    else{
+        draw_viewvolume2();
+    }
     glPopMatrix();
 }
 
@@ -832,6 +909,104 @@ void display()
     glFlush(); /*--Display the results----*/
 }
 
+void zoom(unsigned char key){
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    switch(style){
+        case 0:
+            if(key == 'k'){
+                float factor = 1.2;
+                nleft *= factor;
+                nright *= factor;
+                ntop *= factor;
+                nbottom *= factor;
+                nleft += eye[0];
+                nright += eye[0];
+                ntop += eye[1];
+                nbottom += eye[1];
+            }
+            else{
+                float factor = 0.8;
+                nleft *= factor;
+                nright *= factor;
+                ntop *= factor;
+                nbottom *= factor;
+                nleft += eye[0];
+                nright += eye[0];
+                ntop += eye[1];
+                nbottom += eye[1];
+            }
+            break;
+        case 1:
+            if(key == 'k'){
+                float factor = 1.2;
+                for (int i = 0; i < 4; i++){
+                    nzoom[1][i] *= factor;
+                }
+            }
+            else{
+                float factor = 0.8;
+                for (int i = 0; i < 4; i++){
+                    nzoom[1][i] *= factor;
+                }
+            }
+            break;
+        case 2:
+            if(key == 'k'){
+                float factor = 1.2;
+                for (int i = 0; i < 4; i++){
+                    nzoom[2][i] *= factor;
+                }
+            }
+            else{
+                float factor = 0.8;
+                for (int i = 0; i < 4; i++){
+                    nzoom[2][i] *= factor;
+                }
+            }
+            break;
+        case 3:
+            if(key == 'k'){
+                float factor = 1.2;
+                for (int i = 0; i < 4; i++){
+                    nzoom[3][i] *= factor;
+                }
+            }
+            else{
+                float factor = 0.8;
+                for (int i = 0; i < 4; i++){
+                    nzoom[3][i] *= factor;
+                }
+            }
+            break;
+        case 4:
+            if(key == 'k'){
+                float factor = 1.2;
+                nleft *= factor;
+                nright *= factor;
+                ntop *= factor;
+                nbottom *= factor;
+                nleft += eye[0];
+                nright += eye[0];
+                ntop += eye[1];
+                nbottom += eye[1];
+            }
+            else{
+                float factor = 0.8;
+                nleft *= factor;
+                nright *= factor;
+                ntop *= factor;
+                nbottom *= factor;
+                nleft += eye[0];
+                nright += eye[0];
+                ntop += eye[1];
+                nbottom += eye[1];
+            }
+            break;
+    }
+    glMatrixMode(GL_MODELVIEW);
+}
+
 /*--------------------------------------------------
  * Reshape callback function which defines the size
  * of the main window when a reshape event occurrs.
@@ -1156,6 +1331,16 @@ void my_keyboard(unsigned char key, int ix, int iy)
 			u[1][i] = y[i];
 		}
 	}
+    else if(key == '+'){
+        if (zoom_mode)
+            zoom_mode = 0;
+        else
+            zoom_mode = 1;
+    }
+    else if(key == 'k' || key == 'l')
+    {
+        zoom(key);
+    }
     display();
 }
 
