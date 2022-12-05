@@ -62,7 +62,7 @@ double Eye[3] = {0.0, 0.0, 30.0}, Focus[3] = {0.0, 0.0, 0.0},
 float u[3][3] = {{1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}};
 float eye[3];
 float cv, sv; /* cos(5.0) and sin(5.0) */
-float my_near = 1.5, my_far = 50.0;
+float my_near = 10, my_far = 20.0;
 float ntop, nleft, nright, nbottom;
 float nzoom[4][4] = {{-40.0, 40.0, -40.0, 40}, {-40.0, 40.0, -40.0, 40}, {-40.0, 40.0, -40.0, 40}, {-40.0, 40.0, -40.0, 40}};
 int zoom_mode = 1;
@@ -113,7 +113,7 @@ void myinit()
     eye[2] = Eye[2];
 
     float h_near, w_near;
-    h_near = 2 * tan(90.0 / 2) * my_near;
+    h_near = 2 * tan(90.0 / 2 * Pi / 180.0) * my_near;
     w_near = h_near * width / height;
     nleft = -w_near / 2;
     nright = w_near / 2;
@@ -184,54 +184,63 @@ void draw_viewvolume(){
 }
 
 void draw_viewvolume2(){
-    float fleft, fright, ftop, fbottom;
-    fleft = nleft * my_far / my_near;
-    fright = nright * my_far / my_near;
-    ftop = ntop * my_far / my_near;
-    fbottom = nbottom * my_far / my_near;
+    float fleft, fright, ftop, fbottom, nl, nr, nt, nb;
+    nl = nleft + eye[0];
+    nr = nright + eye[0];
+    nt = ntop + eye[1];
+    nb = nbottom + eye[1];
+    fleft = nleft * (my_far / my_near) + eye[0];
+    fright = nright * (my_far / my_near) + eye[0];
+    ftop = ntop * (my_far / my_near) + eye[1];
+    fbottom = nbottom * (my_far / my_near) + eye[1];
+
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     glColor3f(1.0, 0.0, 0.0);
     glBegin(GL_TRIANGLES);
-    glVertex3f(eye[0], eye[1], eye[2]);
-    glVertex3f(eye[0] + nleft, eye[1] + ntop, eye[2] - my_near);
-    glVertex3f(eye[0] + nright, eye[1] + ntop, eye[2] - my_near);
+    glVertex3f(0.0, 0.0, 0.0);
+    glVertex3f(nl, nt, - my_near);
+    glVertex3f(nr, nt, - my_near);
     glEnd();
+    glColor3f(0.0, 1.0, 0.0);
     glBegin(GL_TRIANGLES);
-    glVertex3f(eye[0], eye[1], eye[2]);
-    glVertex3f(eye[0] + nleft, eye[1] + nbottom, eye[2] - my_near);
-    glVertex3f(eye[0] + nleft, eye[1] + ntop, eye[2] - my_near);
+    glVertex3f(0.0, 0.0, 0.0);
+    glVertex3f(nl, nb, - my_near);
+    glVertex3f(nl, nt, - my_near);
     glEnd();
+    glColor3f(0.0, 0.0, 1.0);
     glBegin(GL_TRIANGLES);
-    glVertex3f(eye[0], eye[1], eye[2]);
-    glVertex3f(eye[0] + nright, eye[1] + nbottom, eye[2] - my_near);
-    glVertex3f(eye[0] + nleft, eye[1] + nbottom, eye[2] - my_near);
+    glVertex3f(0.0, 0.0, 0.0);
+    glVertex3f(nr, nb, - my_near);
+    glVertex3f(nl, nb, - my_near);
     glEnd();
+    glColor3f(1.0, 1.0, 1.0);
     glBegin(GL_TRIANGLES);
-    glVertex3f(eye[0], eye[1], eye[2]);
-    glVertex3f(eye[0] + nright, eye[1] + nbottom, eye[2] - my_near);
-    glVertex3f(eye[0] + nright, eye[1] + ntop, eye[2] - my_near);
+    glVertex3f(0.0, 0.0, 0.0);
+    glVertex3f(nr, nb, - my_near);
+    glVertex3f(nr, nt, - my_near);
     glEnd();
+    
 
     glColor3f(0.0, 0.0, 1.0);
     glBegin(GL_TRIANGLES);
-    glVertex3f(eye[0], eye[1], eye[2]);
-    glVertex3f(eye[0] + fleft, eye[1] + ftop, eye[2] - my_far);
-    glVertex3f(eye[0] + fright, eye[1] + ftop, eye[2] - my_far);
+    glVertex3f(0.0, 0.0, 0.0);
+    glVertex3f(fleft, ftop, - my_far);
+    glVertex3f(fright, ftop, - my_far);
     glEnd();
     glBegin(GL_TRIANGLES);
-    glVertex3f(eye[0], eye[1], eye[2]);
-    glVertex3f(eye[0] + fleft, eye[1] + fbottom, eye[2] - my_far);
-    glVertex3f(eye[0] + fleft, eye[1] + ftop, eye[2] - my_far);
+    glVertex3f(0.0, 0.0, 0.0);
+    glVertex3f(fleft, fbottom, - my_far);
+    glVertex3f(fleft, ftop, - my_far);
     glEnd();
     glBegin(GL_TRIANGLES);
-    glVertex3f(eye[0], eye[1], eye[2]);
-    glVertex3f(eye[0] + fright, eye[1] + fbottom, eye[2] - my_far);
-    glVertex3f(eye[0] + fleft, eye[1] + fbottom, eye[2] - my_far);
+    glVertex3f(0.0, 0.0, 0.0);
+    glVertex3f(fright, fbottom, - my_far);
+    glVertex3f(fleft, fbottom, - my_far);
     glEnd();
     glBegin(GL_TRIANGLES);
-    glVertex3f(eye[0], eye[1], eye[2]);
-    glVertex3f(eye[0] + fright, eye[1] + fbottom, eye[2] - my_far);
-    glVertex3f(eye[0] + fright, eye[1] + ftop, eye[2] - my_far);
+    glVertex3f(0.0, 0.0, 0.0);
+    glVertex3f(fright, fbottom, - my_far);
+    glVertex3f(fright, ftop, - my_far);
     glEnd();
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
@@ -280,12 +289,16 @@ void make_projection(int x)
 	glLoadIdentity();
 	if (x == 4)
 	{
-        if(zoom_mode){
-            gluPerspective(90.0, (double)width / (double)height, my_near, 50.0);
-        }
-        else{
-            glFrustum(nleft, nright, nbottom, ntop, my_near, my_far);
-        }
+        // if(zoom_mode){
+        //     gluPerspective(90.0, (double)width / (double)height, my_near, 50.0);
+        // }
+        // else{
+            // nleft += eye[0];
+            // nright += eye[0];
+            // ntop += eye[1];
+            // nbottom += eye[1];
+            glFrustum(nleft + eye[0], nright + eye[0], nbottom + eye[1], ntop + eye[1], 10, 20);
+        // }
 	}
 	else
 	{
@@ -337,13 +350,17 @@ void draw_view()
 	glEnd();
 
     glPushMatrix();
-    // glTranslatef(eye[0], eye[1], eye[2]);
-    if(zoom_mode){
-        draw_viewvolume();
-    }
-    else{
-        draw_viewvolume2();
-    }
+    glTranslatef(eye[0], eye[1], eye[2]);
+    // if(zoom_mode){
+    //     draw_viewvolume();
+    // }
+    // else{
+    glRotatef(-eyeAngx, 1.0, 0.0, 0.0);
+    glRotatef(eyeAngy, 0.0, 1.0, 0.0);
+    glRotatef(-eyeAngz, 0.0, 0.0, 1.0);
+    // glVertex3f(eye[0] + 20.0 * u[2][0], eye[1] + 20.0 * u[2][1], eye[2] + 20.0 * u[2][2]);
+    draw_viewvolume2();
+    // }
     glPopMatrix();
 }
 
@@ -920,21 +937,13 @@ void zoom(unsigned char key){
                 nright *= factor;
                 ntop *= factor;
                 nbottom *= factor;
-                nleft += eye[0];
-                nright += eye[0];
-                ntop += eye[1];
-                nbottom += eye[1];
             }
             else{
-                float factor = 0.8;
+                float factor = 5.0 / 6.0;
                 nleft *= factor;
                 nright *= factor;
                 ntop *= factor;
                 nbottom *= factor;
-                nleft += eye[0];
-                nright += eye[0];
-                ntop += eye[1];
-                nbottom += eye[1];
             }
             break;
         case 1:
@@ -945,7 +954,7 @@ void zoom(unsigned char key){
                 }
             }
             else{
-                float factor = 0.8;
+                float factor = 5.0 / 6.0;
                 for (int i = 0; i < 4; i++){
                     nzoom[1][i] *= factor;
                 }
@@ -959,7 +968,7 @@ void zoom(unsigned char key){
                 }
             }
             else{
-                float factor = 0.8;
+                float factor = 5.0 / 6.0;
                 for (int i = 0; i < 4; i++){
                     nzoom[2][i] *= factor;
                 }
@@ -973,7 +982,7 @@ void zoom(unsigned char key){
                 }
             }
             else{
-                float factor = 0.8;
+                float factor = 5.0 / 6.0;
                 for (int i = 0; i < 4; i++){
                     nzoom[3][i] *= factor;
                 }
@@ -986,21 +995,13 @@ void zoom(unsigned char key){
                 nright *= factor;
                 ntop *= factor;
                 nbottom *= factor;
-                nleft += eye[0];
-                nright += eye[0];
-                ntop += eye[1];
-                nbottom += eye[1];
             }
             else{
-                float factor = 0.8;
+                float factor = 5.0 / 6.0;
                 nleft *= factor;
                 nright *= factor;
                 ntop *= factor;
                 nbottom *= factor;
-                nleft += eye[0];
-                nright += eye[0];
-                ntop += eye[1];
-                nbottom += eye[1];
             }
             break;
     }
