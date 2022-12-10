@@ -56,19 +56,39 @@ int jump_s = 0;
 /*-----Translation and rotations of eye coordinate system---*/
 float eyeDx = 0.0, eyeDy = 0.0, eyeDz = 0.0;
 float eyeAngx = 0.0, eyeAngy = 0.0, eyeAngz = 0.0;
-double Eye[3] = {0.0, 30.0, 30.0}, Focus[3] = {0.0, 0.0, 0.0},
+double Eye[3] = {0.0, 30.0, 20.0}, Focus[3] = {0.0, 0.0, 0.0},
 	   Vup[3] = {0.0, 1.0, 0.0};
 
 float u[3][3] = {{1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}};
 float eye[3];
 float cv, sv; /* cos(5.0) and sin(5.0) */
-float my_near = 10, my_far = 20.0;
+float my_near = 10.0, my_far = 40.0;
 float ntop, nleft, nright, nbottom;
 float nzoom[4][4] = {{-40.0, 40.0, -40.0, 40}, {-40.0, 40.0, -40.0, 40}, {-40.0, 40.0, -40.0, 40}, {-40.0, 40.0, -40.0, 40}};
 int zoom_mode = 1;
 
 /* ----Drawing syle----*/
 int style = 4;
+int sty_flag = 0;
+
+/*----Define light source properties -------*/
+float lit_position[] = {10.0, 14.0, 0.0, 1.0};  // spotlight
+float lit_direction[] = {-1.0, -1.0, 1.0, 0.0};
+float lit_diffuse[] = {0.8, 0.4, 0.4, 1.0};
+float lit_specular[] = {0.7, 0.7, 0.7, 1.0};
+float lit_cutoff = 60.0;
+float lit_exponent = 8.0;
+
+float lit1_position[] = {-2.5, 1.0, -25.0, 1.0}; // point light
+float lit1_diffuse[] = {0.7, 0.7, 0.0, 1.0};
+
+float lit2_position[] = {0.0, 1.0, 0.0, 0.0}; // directional light
+float lit2_diffuse[] = {0.0, 0.7, 0.7, 1.0};
+
+float global_ambient[] = {0.2, 0.2, 0.2, 1.0};
+
+/*----Some global variables for transformation------*/
+float lit_angle = 0.0;
 
 void draw_sword();
 void draw_lance();
@@ -83,14 +103,38 @@ void myinit()
     /*Clear the Depth & Color Buffers */
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    glViewport(0, 0, 499, 499);
 
-    /*-----Set a parallel projection mode-----*/
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    glOrtho(-40.0, 40.0, -40, 40, 0.0, 120.0);
-
+    glShadeModel(GL_SMOOTH); /*Enable smooth shading */
     glEnable(GL_DEPTH_TEST); /*Enable depth buffer for shading computing */
+    glEnable(GL_NORMALIZE);  /*Enable automatic normalization of normal vectors */
+    // glEnable(GL_LIGHTING);   /*Enable lighting */
+    glEnable(GL_LIGHT0);     /*Enable light source 0 */
+    glEnable(GL_LIGHT1);     /*Enable light source 1 */
+    glEnable(GL_LIGHT2);     /*Enable light source 2 */
+
+    /*define light0 spot light */
+    glLightf(GL_LIGHT0, GL_SPOT_CUTOFF, lit_cutoff);
+    glLightf(GL_LIGHT0, GL_SPOT_EXPONENT, lit_exponent);
+    glLightfv(GL_LIGHT0, GL_DIFFUSE, lit_diffuse);
+    glLightfv(GL_LIGHT0, GL_SPECULAR, lit_specular);
+
+    /*define light1 point light */
+    glLightfv(GL_LIGHT1, GL_DIFFUSE, lit1_diffuse);
+    glLightfv(GL_LIGHT1, GL_SPECULAR, lit_specular);
+
+    /*define light2 directional light */
+    glLightfv(GL_LIGHT2, GL_DIFFUSE, lit2_diffuse);
+    glLightfv(GL_LIGHT2, GL_SPECULAR, lit_specular);
+
+    /*define global ambient light */
+    glLightModeli(GL_LIGHT_MODEL_LOCAL_VIEWER, GL_TRUE);
+    glLightModelfv(GL_LIGHT_MODEL_AMBIENT, global_ambient);
+
+    glCullFace(GL_BACK);
+    glEnable(GL_CULL_FACE);
+
+
+
 
     if (cylind == NULL)
     { /* allocate a quadric object, if necessary */
@@ -205,18 +249,22 @@ void make_view(int x)
 		   by ourselves. Therefore, use them directly; no trabsform is
 		   applied upon eye coordinate system
 		   */
+        sty_flag = 1;
 		gluLookAt(eye[0], eye[1], eye[2],
 				  eye[0] - u[2][0], eye[1] - u[2][1], eye[2] - u[2][2],
 				  u[1][0], u[1][1], u[1][2]);
 		break;
 
 	case 1: /* X direction parallel viewing */
+        sty_flag = 0;
 		gluLookAt(30.0, 0.0, 0.0, Focus[0], Focus[1], Focus[2], 0.0, 1.0, 0.0);
 		break;
 	case 2: /* Y direction parallel viewing */
+        sty_flag = 0;
 		gluLookAt(0.0, 30.0, 0.0, Focus[0], Focus[1], Focus[2], 1.0, 0.0, 0.0);
 		break;
 	case 3:
+        sty_flag = 0;
 		gluLookAt(0.0, 0.0, 30.0, Focus[0], Focus[1], Focus[2], 0.0, 1.0, 0.0);
 		break;
 	}
@@ -231,7 +279,7 @@ void make_projection(int x)
 	glLoadIdentity();
 	if (x == 4)
 	{
-            glFrustum(nleft, nright, nbottom, ntop, 10, 20);
+            glFrustum(nleft, nright, nbottom, ntop, my_near, my_far);
 	}
 	else
 	{
@@ -283,14 +331,51 @@ void draw_view()
 	glEnd();
 
     glPushMatrix();
-    // glTranslatef(-eyeDx, -eyeDy, eye[2]);
     glTranslatef(eye[0], 0.0, 0.0);
     glTranslatef(0.0, eye[1], 0.0);
     glTranslatef(0.0, 0.0, eye[2]);
     glRotatef(-eyeAngx, 1.0, 0.0, 0.0);
     glRotatef(eyeAngy, 0.0, 1.0, 0.0);
     glRotatef(-eyeAngz, 0.0, 0.0, 1.0);
-    draw_viewvolume2();
+
+    if(sty_flag){
+        glPushMatrix();
+        glLoadIdentity();
+        /* position light1 in eye coord sys */
+        glLightfv(GL_LIGHT1, GL_POSITION, lit1_position);
+
+        /* Draw light1 position */
+        glTranslatef(lit1_position[0], lit1_position[1], lit1_position[2]);
+        glDisable(GL_LIGHTING);
+        glDisable(GL_CULL_FACE);
+        glColor3f(1.0, 1.0, 0.5);
+        glutSolidSphere(3.5, 12, 12);
+        glPopMatrix();
+        glEnable(GL_CULL_FACE);
+
+        /*----Define Viewing Matrix----*/
+        gluLookAt(eye[0], eye[1], eye[2],
+                  eye[0] - u[2][0], eye[1] - u[2][1], eye[2] - u[2][2],
+                  u[1][0], u[1][1], u[1][2]);
+
+        /*rotate light position*/
+        glPushMatrix();
+        glTranslatef(8.0, 1.0, -25.0);
+        // glRotatef()
+        glPushMatrix();
+        glTranslatef(lit_position[0], lit_position[1], lit_position[2]);
+        glColor3f(1.0, 0.0, 0.0);
+        glutWireSphere(1.0, 0.0, 0.0);
+        glPopMatrix();
+        // glEnable(GL_LIGHTING);
+
+        glLightfv(GL_LIGHT0, GL_POSITION, lit_position);
+        glLightfv(GL_LIGHT0, GL_SPOT_DIRECTION, lit_direction);
+        glPopMatrix();
+    }
+    else{
+        draw_viewvolume2();
+    }
     glPopMatrix();
 }
 
@@ -411,7 +496,7 @@ void caldown_func()
 // Draw robot
 void draw_robo()
 {
-    // draw_floor();
+    draw_floor();
     glPushMatrix();
     // draw obstacle
     glTranslatef(-5.0, 0.0, 36.0);
@@ -798,6 +883,8 @@ void display()
         make_projection(4);
         glViewport(width / 2, 0, width / 2, height / 2);
         draw_scene();
+        make_view(4);
+        draw_view();
 
         make_view(1);
         make_projection(1);
@@ -849,6 +936,8 @@ void display()
         make_projection(4);
         glViewport(0, 0, width, height);
         draw_scene();
+        make_view(4);
+        draw_view();
         break;
     }
     /*-------Swap the back buffer to the front --------*/
