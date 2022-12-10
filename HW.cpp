@@ -124,75 +124,26 @@ void myinit()
     glFlush(); /*Enforce window system display the results*/
 }
 
-void draw_viewvolume(){
-    float h_near, h_far, w_near, w_far, f_change[3], n_change[3];
-    h_near = 2 * tan(90.0 / 2) * my_near;
-    w_near = h_near * width / height;
-    h_far = 2 * tan(90.0 / 2) * my_far;
-    w_far = h_far * width / height;
-    f_change[0] = u[2][0] * my_far;
-    f_change[1] = u[2][1] * my_far;
-    f_change[2] = u[2][2] * my_far;
-    n_change[0] = u[2][0] * my_near;
-    n_change[1] = u[2][1] * my_near;
-    n_change[2] = u[2][2] * my_near;
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-    glColor3f(1.0, 0.0, 0.0);
-    glBegin(GL_TRIANGLES);
-    glVertex3f(eye[0], eye[1], eye[2]);
-    glVertex3f(eye[0] + w_near / 2 - n_change[0], eye[1] + h_near / 2 - n_change[1], eye[2] - my_near - n_change[2]);
-    glVertex3f(eye[0] - w_near / 2 - n_change[0], eye[1] + h_near / 2 - n_change[1], eye[2] - my_near - n_change[2]);
-    glEnd();
-    glBegin(GL_TRIANGLES);
-    glVertex3f(eye[0], eye[1], eye[2]);
-    glVertex3f(eye[0] + w_near / 2 - n_change[0], eye[1] - h_near / 2 - n_change[1], eye[2] - my_near - n_change[2]);
-    glVertex3f(eye[0] + w_near / 2 - n_change[0], eye[1] + h_near / 2 - n_change[1], eye[2] - my_near - n_change[2]);
-    glEnd();
-    glBegin(GL_TRIANGLES);
-    glVertex3f(eye[0], eye[1], eye[2]);
-    glVertex3f(eye[0] - w_near / 2 - n_change[0], eye[1] - h_near / 2 - n_change[1], eye[2] - my_near - n_change[2]);
-    glVertex3f(eye[0] + w_near / 2 - n_change[0], eye[1] - h_near / 2 - n_change[1], eye[2] - my_near - n_change[2]);
-    glEnd();
-    glBegin(GL_TRIANGLES);
-    glVertex3f(eye[0], eye[1], eye[2]);
-    glVertex3f(eye[0] - w_near / 2 - n_change[0], eye[1] - h_near / 2 - n_change[1], eye[2] - my_near - n_change[2]);
-    glVertex3f(eye[0] - w_near / 2 - n_change[0], eye[1] + h_near / 2 - n_change[1], eye[2] - my_near - n_change[2]);
-    glEnd();
-
-    glColor3f(0.0, 0.0, 1.0);
-    glBegin(GL_TRIANGLES);
-    glVertex3f(eye[0], eye[1], eye[2]);
-    glVertex3f(eye[0] + w_far / 2 - f_change[0], eye[1] + h_far / 2 - f_change[1], eye[2] - my_far - f_change[2]);
-    glVertex3f(eye[0] - w_far / 2 - f_change[0], eye[1] + h_far / 2 - f_change[1], eye[2] - my_far - f_change[2]);
-    glEnd();
-    glBegin(GL_TRIANGLES);
-    glVertex3f(eye[0], eye[1], eye[2]);
-    glVertex3f(eye[0] + w_far / 2 - f_change[0], eye[1] - h_far / 2 - f_change[1], eye[2] - my_far - f_change[2]);
-    glVertex3f(eye[0] + w_far / 2 - f_change[0], eye[1] + h_far / 2 - f_change[1], eye[2] - my_far - f_change[2]);
-    glEnd();
-    glBegin(GL_TRIANGLES);
-    glVertex3f(eye[0], eye[1], eye[2]);
-    glVertex3f(eye[0] - w_far / 2 - f_change[0], eye[1] - h_far / 2 - f_change[1], eye[2] - my_far - f_change[2]);
-    glVertex3f(eye[0] + w_far / 2 - f_change[0], eye[1] - h_far / 2 - f_change[1], eye[2] - my_far - f_change[2]);
-    glEnd();
-    glBegin(GL_TRIANGLES);
-    glVertex3f(eye[0], eye[1], eye[2]);
-    glVertex3f(eye[0] - w_far / 2 - f_change[0], eye[1] - h_far / 2 - f_change[1], eye[2] - my_far - f_change[2]);
-    glVertex3f(eye[0] - w_far / 2 - f_change[0], eye[1] + h_far / 2 - f_change[1], eye[2] - my_far - f_change[2]);
-    glEnd();
-    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-}
-
 void draw_viewvolume2(){
+    // glTranslatef(eyeDx, eyeDy, eyeDz);
     float fleft, fright, ftop, fbottom, nl, nr, nt, nb;
-    nl = nleft + eye[0];
-    nr = nright + eye[0];
-    nt = ntop + eye[1];
-    nb = nbottom + eye[1];
-    fleft = nleft * (my_far / my_near) + eye[0];
-    fright = nright * (my_far / my_near) + eye[0];
-    ftop = ntop * (my_far / my_near) + eye[1];
-    fbottom = nbottom * (my_far / my_near) + eye[1];
+    // nl = nleft + eye[0];
+    // nr = nright + eye[0];
+    // nt = ntop + eye[1];
+    // nb = nbottom + eye[1];
+    // fleft = nleft * (my_far / my_near) + eye[0];
+    // fright = nright * (my_far / my_near) + eye[0];
+    // ftop = ntop * (my_far / my_near) + eye[1];
+    // fbottom = nbottom * (my_far / my_near) + eye[1];
+
+    nl = nleft;
+    nr = nright;
+    nt = ntop ;
+    nb = nbottom ;
+    fleft = nleft * (my_far / my_near) ;
+    fright = nright * (my_far / my_near) ;
+    ftop = ntop * (my_far / my_near) ;
+    fbottom = nbottom * (my_far / my_near) ;
 
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     glColor3f(1.0, 0.0, 0.0);
@@ -350,17 +301,11 @@ void draw_view()
 	glEnd();
 
     glPushMatrix();
-    glTranslatef(eye[0], eye[1], eye[2]);
-    // if(zoom_mode){
-    //     draw_viewvolume();
-    // }
-    // else{
+    glTranslatef(-eyeDx, -eyeDy, eye[2]);
     glRotatef(-eyeAngx, 1.0, 0.0, 0.0);
     glRotatef(eyeAngy, 0.0, 1.0, 0.0);
     glRotatef(-eyeAngz, 0.0, 0.0, 1.0);
-    // glVertex3f(eye[0] + 20.0 * u[2][0], eye[1] + 20.0 * u[2][1], eye[2] + 20.0 * u[2][2]);
     draw_viewvolume2();
-    // }
     glPopMatrix();
 }
 
@@ -488,7 +433,7 @@ void draw_robo()
     glRotatef(-90, 1.0, 0.0, 0.0);
     glScalef(10.0, 6.0, 6.0);
     glColor3f(0.0, 1.0, 0.0);
-    // draw_ret();
+    draw_ret();
     glPopMatrix();
 
     glTranslatef(test_x, test_y, test_z);
