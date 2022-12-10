@@ -284,12 +284,12 @@ void draw_view()
 
     glPushMatrix();
     // glTranslatef(-eyeDx, -eyeDy, eye[2]);
-    glRotatef(-eyeAngx, 1.0, 0.0, 0.0);
-    glRotatef(eyeAngy, 0.0, 1.0, 0.0);
-    glRotatef(-eyeAngz, 0.0, 0.0, 1.0);
     glTranslatef(eye[0], 0.0, 0.0);
     glTranslatef(0.0, eye[1], 0.0);
     glTranslatef(0.0, 0.0, eye[2]);
+    glRotatef(-eyeAngx, 1.0, 0.0, 0.0);
+    glRotatef(eyeAngy, 0.0, 1.0, 0.0);
+    glRotatef(-eyeAngz, 0.0, 0.0, 1.0);
     draw_viewvolume2();
     glPopMatrix();
 }
