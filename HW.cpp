@@ -56,7 +56,7 @@ int jump_s = 0;
 /*-----Translation and rotations of eye coordinate system---*/
 float eyeDx = 0.0, eyeDy = 0.0, eyeDz = 0.0;
 float eyeAngx = 0.0, eyeAngy = 0.0, eyeAngz = 0.0;
-double Eye[3] = {0.0, 0.0, 30.0}, Focus[3] = {0.0, 0.0, 0.0},
+double Eye[3] = {0.0, 30.0, 30.0}, Focus[3] = {0.0, 0.0, 0.0},
 	   Vup[3] = {0.0, 1.0, 0.0};
 
 float u[3][3] = {{1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}};
@@ -68,7 +68,7 @@ float nzoom[4][4] = {{-40.0, 40.0, -40.0, 40}, {-40.0, 40.0, -40.0, 40}, {-40.0,
 int zoom_mode = 1;
 
 /* ----Drawing syle----*/
-int style = 0;
+int style = 4;
 
 void draw_sword();
 void draw_lance();
@@ -125,16 +125,7 @@ void myinit()
 }
 
 void draw_viewvolume2(){
-    // glTranslatef(eyeDx, eyeDy, eyeDz);
     float fleft, fright, ftop, fbottom, nl, nr, nt, nb;
-    // nl = nleft + eye[0];
-    // nr = nright + eye[0];
-    // nt = ntop + eye[1];
-    // nb = nbottom + eye[1];
-    // fleft = nleft * (my_far / my_near) + eye[0];
-    // fright = nright * (my_far / my_near) + eye[0];
-    // ftop = ntop * (my_far / my_near) + eye[1];
-    // fbottom = nbottom * (my_far / my_near) + eye[1];
 
     nl = nleft;
     nr = nright;
@@ -240,16 +231,7 @@ void make_projection(int x)
 	glLoadIdentity();
 	if (x == 4)
 	{
-        // if(zoom_mode){
-        //     gluPerspective(90.0, (double)width / (double)height, my_near, 50.0);
-        // }
-        // else{
-            // nleft += eye[0];
-            // nright += eye[0];
-            // ntop += eye[1];
-            // nbottom += eye[1];
-            glFrustum(nleft + eye[0], nright + eye[0], nbottom + eye[1], ntop + eye[1], 10, 20);
-        // }
+            glFrustum(nleft, nright, nbottom, ntop, 10, 20);
 	}
 	else
 	{
@@ -301,10 +283,13 @@ void draw_view()
 	glEnd();
 
     glPushMatrix();
-    glTranslatef(-eyeDx, -eyeDy, eye[2]);
+    // glTranslatef(-eyeDx, -eyeDy, eye[2]);
     glRotatef(-eyeAngx, 1.0, 0.0, 0.0);
     glRotatef(eyeAngy, 0.0, 1.0, 0.0);
     glRotatef(-eyeAngz, 0.0, 0.0, 1.0);
+    glTranslatef(eye[0], 0.0, 0.0);
+    glTranslatef(0.0, eye[1], 0.0);
+    glTranslatef(0.0, 0.0, eye[2]);
     draw_viewvolume2();
     glPopMatrix();
 }
