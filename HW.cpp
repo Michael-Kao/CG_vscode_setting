@@ -72,27 +72,45 @@ int style = 4;
 int sty_flag = 0;
 
 /*----Define light source properties -------*/
-float lit_position[] = {10.0, 55.0, -10.0, 1.0};  // spotlight
+int isLightOn0 = -1, isLightOn1 = -1, isLightOn2 = -1, isLightOn3 = -1, isLightOn4 = -1;
+float lit_position[] = {4.0, 0.0, 0.0, 1.0};  // spotlight
 float lit_direction[] = {-1.0, -1.0, 1.0, 0.0};
 float lit_diffuse[] = {1.0, 1.0, 0.1, 1.0};
 float lit_specular[] = {0.7, 0.7, 0.7, 1.0};
 float lit_cutoff = 60.0;
 float lit_exponent = 8.0;
 
-float lit1_position[] = {-0.5, 2.0, -15.0, 1.0}; // point light
-float lit1_diffuse[] = {1.0, 1.0, 1.0, 1.0};
+float lit1_position[] = {-1.5, 15.0, -15.0, 1.0}; // point light
+float lit1_ambient[] = {0.7, 0.7, 0.7, 1.0};
+float lit1_diffuse[] = {0.3, 0.3, 0.3, 1.0};
 float lit1_specular[] = {1.0, 1.0, 1.0, 1.0};
 // float lit1_diffuse[] = {0.7, 0.7, 0.0, 1.0};
 
-float lit2_position[] = {0.0, 1.0, 0.0, 0.0}; // directional light
+float lit2_position[] = {1.5, 20.0, -15.0, 0.0}; // directional light
 float lit2_diffuse[] = {0.0, 0.7, 0.7, 1.0};
+float lit2_ambient[] = {0.0, 0.7, 0.7, 1.0};
+bool isFancy = false;
+int Light2_ang = 0;
+
+float lit3_position[] = {0.0, 0.0, 0.0, 1.0}; // test
+float lit3_diffuse[] = {0.3, 0.3, 0.1, 1.0};
+float lit3_ambient[] = {0.3, 0.3, 0.1, 1.0};
+float lit3_specular[] = {0.7, 0.7, 0.7, 1.0};
+float robot_emission[] = {1.0, 1.0, 1.0, 1.0};
+
+float lit4_position[] = {0.0, 0.0, 1.0, 1.0}; // emission
+float lit4_diffuse[] = {0.5, 0.5, 0.5, 1.0};
+float lit4_ambient[] = {0.6, 0.6, 0.6, 1.0};
+float lit4_specular[] = {0.3, 0.3, 0.3, 1.0};
+float light_emission[] = {0.3, 0.1, 0.1, 1.0};
+float no_emission[] = {0.0, 0.0, 0.0, 1.0};
 
 float global_ambient[] = {0.2, 0.2, 0.2, 1.0};
 
 float no_specular[] = {0.0, 0.0, 0.0, 1.0};
 
-float flr_diffuse[] = {0.3, 0.3, 0.1, 1.0};
-float flr_ambient[] = {0.3, 0.3, 0.1, 1.0};
+float flr_diffuse[] = {0.0, 0.0, 0.0, 1.0};
+float flr_ambient[] = {0.0, 0.0, 0.0, 1.0};
 float flr_specular[] = {0.0, 0.0, 0.0, 1.0};
 
 float obs_diffuse[] = {0.35, 0.3, 0.25, 1.0};
@@ -134,12 +152,28 @@ float jade_diffuse[] = {0.54, 0.89, 0.63, 1.0};
 float jade_specular[] = {0.316228, 0.316228, 0.316228, 1.0};
 float jade_shininess = 12.8;
 
+float copper_ambient[] = {0.19125, 0.0735, 0.0225, 1.0};
+float copper_diffuse[] = {0.7038, 0.27048, 0.0828, 1.0};
+float copper_specular[] = {0.256777, 0.137622, 0.086014, 1.0};
+float copper_shininess = 12.8;
+
+float redplastic_ambient[] = {0.0, 0.0, 0.0, 1.0};
+float redplastic_diffuse[] = {0.5, 0.0, 0.0, 1.0};
+float redplastic_specular[] = {0.7, 0.6, 0.6, 1.0};
+float redplastic_shininess = 32.0;
+
+float whiteplastic_ambient[] = {0.0, 0.0, 0.0, 1.0};
+float whiteplastic_diffuse[] = {0.55, 0.55, 0.55, 1.0};
+float whiteplastic_specular[] = {0.7, 0.7, 0.7, 1.0};
+float whiteplastic_shininess = 32.0;
+
 /*----Some global variables for transformation------*/
 float lit_angle = 0.0;
 
 void draw_sword();
 void draw_lance();
 void draw_stuff();
+void CheckLight();
 
 void FindNormal(float *normals, float *p1, float *p2, float *p3){
     float v1[3], v2[3];
@@ -170,33 +204,7 @@ void myinit()
     glEnable(GL_DEPTH_TEST); /*Enable depth buffer for shading computing */
     glEnable(GL_NORMALIZE);  /*Enable automatic normalization of normal vectors */
     glEnable(GL_LIGHTING);   /*Enable lighting */
-    // glEnable(GL_LIGHT0);     /*Enable light source 0 */
-    glEnable(GL_LIGHT1);     /*Enable light source 1 */
-    // glEnable(GL_LIGHT2);     /*Enable light source 2 */
-
-    // /*define light0 spot light */
-    glLightf(GL_LIGHT0, GL_SPOT_CUTOFF, lit_cutoff);
-    glLightf(GL_LIGHT0, GL_SPOT_EXPONENT, lit_exponent);
-    glLightfv(GL_LIGHT0, GL_DIFFUSE, lit_diffuse);
-    glLightfv(GL_LIGHT0, GL_SPECULAR, lit_specular);
-
-    // /*define light1 point light */
-    glLightfv(GL_LIGHT1, GL_DIFFUSE, lit1_diffuse);
-    glLightfv(GL_LIGHT1, GL_SPECULAR, lit1_specular);
-
-    // /*define light2 directional light */
-    // glLightfv(GL_LIGHT2, GL_DIFFUSE, lit2_diffuse);
-    // glLightfv(GL_LIGHT2, GL_SPECULAR, lit_specular);
-
-    // /*define global ambient light */
-    glLightModeli(GL_LIGHT_MODEL_LOCAL_VIEWER, GL_TRUE);
-    glLightModelfv(GL_LIGHT_MODEL_AMBIENT, global_ambient);
-
-    glCullFace(GL_BACK);
-    glEnable(GL_CULL_FACE);
-
-
-
+    CheckLight();            /*Enable light sources */
 
     if (cylind == NULL)
     { /* allocate a quadric object, if necessary */
@@ -209,6 +217,7 @@ void myinit()
     {
         sphere = gluNewQuadric();
         gluQuadricDrawStyle(sphere, GLU_FILL);
+        gluQuadricNormals(sphere, GLU_SMOOTH);
     }
 
     cv = cos(5.0 * Pi / 180.0);
@@ -401,40 +410,20 @@ void draw_view()
     glRotatef(-eyeAngz, 0.0, 0.0, 1.0);
 
     if(sty_flag){
-        // glPushMatrix();
-        // glLoadIdentity();
-        // /* position light1 in eye coord sys */
-        // glLightfv(GL_LIGHT1, GL_POSITION, lit1_position);
+        glPushMatrix();
+        glLoadIdentity();
+        /* position light1 in eye coord sys */
+        glLightfv(GL_LIGHT1, GL_POSITION, lit1_position);
 
-        // /* Draw light1 position */
-        // glTranslatef(lit1_position[0], lit1_position[1], lit1_position[2]);
-        // glDisable(GL_LIGHTING);
-        // glDisable(GL_CULL_FACE);
-        // glColor3f(1.0, 1.0, 0.5);
-        // // glutSolidSphere(3.5, 12, 12);
-        // glPopMatrix();
-        // // glEnable(GL_LIGHTING);
-        // glEnable(GL_CULL_FACE);
-
-        // /*----Define Viewing Matrix----*/
-        // gluLookAt(eye[0], eye[1], eye[2],
-        //           eye[0] - u[2][0], eye[1] - u[2][1], eye[2] - u[2][2],
-        //           u[1][0], u[1][1], u[1][2]);
-
-        // /*rotate light position*/
-        // glPushMatrix();
-        // glTranslatef(8.0, 1.0, -25.0);
-        // // glRotatef()
-        // glPushMatrix();
-        // glTranslatef(lit_position[0], lit_position[1], lit_position[2]);
-        // glColor3f(1.0, 0.0, 0.0);
-        // glutWireSphere(1.0, 0.0, 0.0);
-        // glPopMatrix();
-        // // glEnable(GL_LIGHTING);
-
-        // glLightfv(GL_LIGHT0, GL_POSITION, lit_position);
-        // glLightfv(GL_LIGHT0, GL_SPOT_DIRECTION, lit_direction);
-        // glPopMatrix();
+        /* Draw light1 position */
+        glTranslatef(lit1_position[0], lit1_position[1], lit1_position[2]);
+        glDisable(GL_LIGHTING);
+        glDisable(GL_CULL_FACE);
+        glColor3f(1.0, 1.0, 0.5);
+        glutSolidSphere(3.5, 12, 12);
+        glPopMatrix();
+        glEnable(GL_LIGHTING);
+        glEnable(GL_CULL_FACE);
     }
     else{
         draw_viewvolume2();
@@ -528,7 +517,6 @@ void draw_floor()
             // if ((i + j) % 2 == 0) glColor3f(0.9, 0.9, 0.9);
             /*else*/ 
             glColor3f(0.3, 0.1, 0.1);
-            // glColor3f(0.0, 0.0, 0.0);
             glBegin(GL_POLYGON);
             glVertex3f(i, 0.0, j);
             glVertex3f(i, 0.0, j + 1);
@@ -557,6 +545,7 @@ void draw_robo()
     glMaterialfv(GL_FRONT, GL_DIFFUSE, obs_diffuse);
     glMaterialfv(GL_FRONT, GL_SPECULAR, no_specular);
     glMaterialf(GL_FRONT, GL_SHININESS, obs_shininess);
+    // glMaterialfv(GL_FRONT, GL_EMISSION, robot_emission);
 
     glColor3f(0.35, 0.3, 0.25); //gray like rock
     draw_ret();
@@ -587,7 +576,8 @@ void draw_robo()
     glMaterialfv(GL_FRONT, GL_DIFFUSE, emerald_diffuse);
     glMaterialfv(GL_FRONT, GL_SPECULAR, emerald_specular);
     glMaterialf(GL_FRONT, GL_SHININESS, emerald_shininess);
-    
+    // glMaterialfv(GL_FRONT, GL_EMISSION, robot_emission);
+
     glColor3f(0.0, 1.0, 0.0); /* Green colored */
     gluCylinder(cylind, 4, 4, // 沿著z軸畫圓柱
                 6,
@@ -615,6 +605,7 @@ void draw_robo()
     glMaterialfv(GL_FRONT, GL_DIFFUSE, gold_diffuse);
     glMaterialfv(GL_FRONT, GL_SPECULAR, gold_specular);
     glMaterialf(GL_FRONT, GL_SHININESS, gold_shininess);
+    // glMaterialfv(GL_FRONT, GL_EMISSION, robot_emission);
 
     glColor3f(1.0, 1.0, 0.0); // Yello color
     gluCylinder(cylind, 1.5, 1.5, 2.5, 12, 3);
@@ -631,6 +622,7 @@ void draw_robo()
     glMaterialfv(GL_FRONT, GL_DIFFUSE, ruby_diffuse);
     glMaterialfv(GL_FRONT, GL_SPECULAR, ruby_specular);
     glMaterialf(GL_FRONT, GL_SHININESS, ruby_shininess);
+    // glMaterialfv(GL_FRONT, GL_EMISSION, robot_emission);
 
     glColor3f(1.0, 0.0, 0.0); // Red color
     gluSphere(sphere, 1.5,    /* radius=2.0 */
@@ -657,6 +649,7 @@ void draw_robo()
     glMaterialfv(GL_FRONT, GL_DIFFUSE, purl_diffuse);
     glMaterialfv(GL_FRONT, GL_SPECULAR, purl_specular);
     glMaterialf(GL_FRONT, GL_SHININESS, purl_shininess);
+    // glMaterialfv(GL_FRONT, GL_EMISSION, robot_emission);
 
     glColor3f(0.0, 0.0, 1.0); // Blue color
     gluCylinder(cylind, 1.5, 1.5, 6.0, 12, 3);
@@ -683,6 +676,7 @@ void draw_robo()
     glMaterialfv(GL_FRONT, GL_DIFFUSE, gold_diffuse);
     glMaterialfv(GL_FRONT, GL_SPECULAR, gold_specular);
     glMaterialf(GL_FRONT, GL_SHININESS, gold_shininess);
+    // glMaterialfv(GL_FRONT, GL_EMISSION, robot_emission);
 
     glColor3f(2.0, 1.0, 0.0); // Yello color
     gluCylinder(cylind, 1.5, 1.5, 2.5, 12, 3);
@@ -699,6 +693,7 @@ void draw_robo()
     glMaterialfv(GL_FRONT, GL_DIFFUSE, ruby_diffuse);
     glMaterialfv(GL_FRONT, GL_SPECULAR, ruby_specular);
     glMaterialf(GL_FRONT, GL_SHININESS, ruby_shininess);
+    // glMaterialfv(GL_FRONT, GL_EMISSION, robot_emission);
 
     glColor3f(1.0, 0.0, 0.0); // Red color
     gluSphere(sphere, 1.5,    /* radius=2.0 */
@@ -725,6 +720,7 @@ void draw_robo()
     glMaterialfv(GL_FRONT, GL_DIFFUSE, purl_diffuse);
     glMaterialfv(GL_FRONT, GL_SPECULAR, purl_specular);
     glMaterialf(GL_FRONT, GL_SHININESS, purl_shininess);
+    // glMaterialfv(GL_FRONT, GL_EMISSION, robot_emission);
 
     glColor3f(0.0, 0.0, 1.0); // Blue color
     gluCylinder(cylind, 1.5, 1.5, 6.0, 12, 3);
@@ -744,12 +740,15 @@ void draw_robo()
         glRotatef(10, 1.0, 0.0, 0.0);
     }
 
+    glLightfv(GL_LIGHT3, GL_POSITION, lit3_position);
+
     glEnable(GL_COLOR_MATERIAL);
     glColorMaterial(GL_FRONT, GL_SPECULAR);
     glMaterialfv(GL_FRONT, GL_AMBIENT, silver_ambient);
     glMaterialfv(GL_FRONT, GL_DIFFUSE, silver_diffuse);
     glMaterialfv(GL_FRONT, GL_SPECULAR, silver_specular);
     glMaterialf(GL_FRONT, GL_SHININESS, silver_shininess);
+    // glMaterialfv(GL_FRONT, GL_EMISSION, robot_emission);
 
     glColor3f(1.0, 1.0, 1.0);
     glutSolidCube(6);
@@ -764,6 +763,7 @@ void draw_robo()
     glMaterialfv(GL_FRONT, GL_DIFFUSE, obsidian_diffuse);
     glMaterialfv(GL_FRONT, GL_SPECULAR, obsidian_specular);
     glMaterialf(GL_FRONT, GL_SHININESS, obsidian_shininess);
+    // glMaterialfv(GL_FRONT, GL_EMISSION, robot_emission);
 
     glColor3f(0.0, 0.0, 0.0);
     glutSolidSphere(1.0, 6, 6);
@@ -789,6 +789,7 @@ void draw_robo()
     glMaterialfv(GL_FRONT, GL_DIFFUSE, silver_diffuse);
     glMaterialfv(GL_FRONT, GL_SPECULAR, silver_specular);
     glMaterialf(GL_FRONT, GL_SHININESS, silver_shininess);
+    // glMaterialfv(GL_FRONT, GL_EMISSION, robot_emission);
 
     glColor3f(0.32, 0.32, 0.32);
     glutSolidCube(3);
@@ -809,6 +810,7 @@ void draw_robo()
     glMaterialfv(GL_FRONT, GL_DIFFUSE, jade_diffuse);
     glMaterialfv(GL_FRONT, GL_SPECULAR, jade_specular);
     glMaterialf(GL_FRONT, GL_SHININESS, jade_shininess);
+    // glMaterialfv(GL_FRONT, GL_EMISSION, robot_emission);
 
     draw_ret();
 
@@ -825,6 +827,7 @@ void draw_robo()
     glMaterialfv(GL_FRONT, GL_DIFFUSE, silver_diffuse);
     glMaterialfv(GL_FRONT, GL_SPECULAR, silver_specular);
     glMaterialf(GL_FRONT, GL_SHININESS, silver_shininess);
+    // glMaterialfv(GL_FRONT, GL_EMISSION, robot_emission);
 
     glColor3f(0.0, 1.0, 1.0);
     gluSphere(sphere, 0.5, 12, 12);
@@ -851,18 +854,68 @@ void draw_robo()
     glMaterialfv(GL_FRONT, GL_DIFFUSE, jade_diffuse);
     glMaterialfv(GL_FRONT, GL_SPECULAR, jade_specular);
     glMaterialf(GL_FRONT, GL_SHININESS, jade_shininess);
+    // glMaterialfv(GL_FRONT, GL_EMISSION, robot_emission);
 
     draw_ret();
 
     glDisable(GL_COLOR_MATERIAL);
 
+    glPushMatrix();///////////////////////////////////////////////////light
+    glTranslatef(0.75, 2.0, 4.0);
+    glRotatef(-90, 1.0, 0.0, 0.0);
+    glEnable(GL_COLOR_MATERIAL);
+    glColorMaterial(GL_FRONT_AND_BACK, GL_SPECULAR);
+    glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, obsidian_ambient);
+    glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, obsidian_diffuse);
+    glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, obsidian_specular);
+    glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, obsidian_shininess);
+    // glMaterialfv(GL_FRONT, GL_EMISSION, robot_emission);
+    // glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, light_emission);
+
+    glScalef(1.0, 1.0, 3.0);
+    glColor3f(0.0, 0.0, 0.0);
+    glutSolidCube(1.0);
+    glDisable(GL_COLOR_MATERIAL);
+
+    glLightfv(GL_LIGHT0, GL_POSITION, lit_position);
+    glLightfv(GL_LIGHT0, GL_SPOT_DIRECTION, lit_direction);
+
+    glPopMatrix();
+
+    glPushMatrix();
+    glTranslatef(0.75, 1.0, 4.0);
+    glRotatef(-90, 1.0, 0.0, 0.0);
+    glTranslatef(0.0, 0.0, 3.0);
+
+    glLightfv(GL_LIGHT4, GL_POSITION, lit4_position);/////////////////////////////////RRRRRRRRRRRRRRRRRRRRRRRRR
+    glEnable(GL_COLOR_MATERIAL);
+    glColorMaterial(GL_FRONT, GL_SPECULAR);
+    glMaterialfv(GL_FRONT, GL_AMBIENT, redplastic_ambient);
+    glMaterialfv(GL_FRONT, GL_DIFFUSE, redplastic_diffuse);
+    glMaterialfv(GL_FRONT, GL_SPECULAR, redplastic_specular);
+    glMaterialf(GL_FRONT, GL_SHININESS, redplastic_shininess);
+    if(isLightOn4 == 1){
+        glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, light_emission);
+    }
+    else if(isLightOn4 == -1){
+        glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, no_emission);
+    }
+
+    glColor3f(1.0, 0.0, 0.0);
+    glutSolidCube(1.0);
+
+
+    glDisable(GL_COLOR_MATERIAL);
+    
+    glPopMatrix();
     if (hold && !right_hand)
     {
         glTranslatef(0.75, 0.0, 2.5);
-        if (weapon == SWORD)
-            draw_sword();
-        if (weapon == LANCE)
-            draw_lance();
+
+        // if (weapon == SWORD)
+        //     draw_sword();
+        // if (weapon == LANCE)
+        //     draw_lance();
     }
 
     glPopMatrix();
@@ -978,6 +1031,14 @@ void draw_sword()
 
     glPushMatrix();
     glRotatef(-90, 1.0, 0.0, 0.0);
+
+    glEnable(GL_COLOR_MATERIAL);
+    glColorMaterial(GL_FRONT, GL_SPECULAR);
+    glMaterialfv(GL_FRONT, GL_AMBIENT, ruby_ambient);
+    glMaterialfv(GL_FRONT, GL_DIFFUSE, ruby_diffuse);
+    glMaterialfv(GL_FRONT, GL_SPECULAR, ruby_specular);
+    glMaterialf(GL_FRONT, GL_SHININESS, ruby_shininess);
+
     glColor3f(1.0, 0.0, 0.0);
 
     gluCylinder(cylind, 0.5, 0.5, // 沿著z軸畫圓柱
@@ -985,15 +1046,19 @@ void draw_sword()
                 12,
                 3);
 
+    glDisable(GL_COLOR_MATERIAL);
+
     glPushMatrix();
     glTranslatef(0.0, 0.0, 2.5);
     glScalef(3.0, 1.0, 1.0);
+
     glutWireCube(1);
     glPopMatrix();
 
     glPushMatrix();
     glTranslatef(0.0, 0.0, 5.5);
     glScalef(2.0, 0.1, 5.0);
+
     glutSolidCube(1);
     glPopMatrix();
 
@@ -1015,39 +1080,86 @@ void draw_lance()
 
     if (!hold || weapon != LANCE)
     {
-        glRotatef(spin, 0.0, 1.0, 0.0);
+        // glRotatef(spin, 0.0, 1.0, 0.0);
         glScalef(1.5, 1.5, 1.5);
     }
 
     glPushMatrix();
     glRotatef(-90, 1.0, 0.0, 0.0);
+
+    glEnable(GL_COLOR_MATERIAL);
+    glColorMaterial(GL_FRONT, GL_SPECULAR);
+    glMaterialfv(GL_FRONT, GL_AMBIENT, copper_ambient);
+    glMaterialfv(GL_FRONT, GL_DIFFUSE, copper_diffuse);
+    glMaterialfv(GL_FRONT, GL_SPECULAR, copper_specular);
+    glMaterialf(GL_FRONT, GL_SHININESS, copper_shininess);
+
     glColor3f(0.5, 0.0, 1.0);
     gluCylinder(cylind, 0.5, 0.5, 10.0, 12, 3);
+
+    glDisable(GL_COLOR_MATERIAL);
+
+    float p[][4] = {
+        {-1.0, -1.0, 0.0, 1.0},
+        {1.0, -1.0, 0.0, 1.0},
+        {0.0, 0.0, 3.0, 1.0},
+        {1.0, 1.0, 0.0, 1.0},
+        {-1.0, 1.0, 0.0, 1.0}
+    };
+    float normals[4];
 
     glTranslatef(0.0, 0.0, 10.0);
 
     glPushMatrix();
+
+    glEnable(GL_COLOR_MATERIAL);
+    glColorMaterial(GL_FRONT_AND_BACK, GL_SPECULAR);
+    glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, copper_ambient);
+    glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, copper_diffuse);
+    glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, copper_specular);
+    glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, copper_shininess);
+
+    FindNormal(normals, p[0], p[1], p[2]);
+
+
+    glNormal3fv(normals);
+
     glColor3f(1.0, 0.5, 0.0);
     glBegin(GL_TRIANGLES);
-    glVertex3f(-1.0, -1.0, 0.0);
-    glVertex3f(1.0, -1.0, 0.0);
-    glVertex3f(0.0, 0.0, 3.0);
+    glVertex4fv(p[0]);
+    glVertex4fv(p[1]);
+    glVertex4fv(p[2]);
     glEnd();
+
+    FindNormal(normals, p[1], p[3], p[2]);
+    glNormal3fv(normals);
+
     glBegin(GL_TRIANGLES);
-    glVertex3f(1.0, -1.0, 0.0);
-    glVertex3f(1.0, 1.0, 0.0);
-    glVertex3f(0.0, 0.0, 3.0);
+    glVertex4fv(p[1]);
+    glVertex4fv(p[3]);
+    glVertex4fv(p[2]);
     glEnd();
+
+    FindNormal(normals, p[3], p[4], p[2]);
+    glNormal3fv(normals);
+
     glBegin(GL_TRIANGLES);
-    glVertex3f(1.0, 1.0, 0.0);
-    glVertex3f(-1.0, 1.0, 0.0);
-    glVertex3f(0.0, 0.0, 3.0);
+    glVertex4fv(p[3]);
+    glVertex4fv(p[4]);
+    glVertex4fv(p[2]);
     glEnd();
+
+    FindNormal(normals, p[0], p[4], p[2]);
+    glNormal3fv(normals);
+
     glBegin(GL_TRIANGLES);
-    glVertex3f(-1.0, -1.0, 0.0);
-    glVertex3f(-1.0, 1.0, 0.0);
-    glVertex3f(0.0, 0.0, 3.0);
+    glVertex4fv(p[0]);
+    glVertex4fv(p[4]);
+    glVertex4fv(p[2]);
     glEnd();
+
+    glDisable(GL_COLOR_MATERIAL);
+
     glPopMatrix();
 
     glPopMatrix();
@@ -1085,15 +1197,26 @@ void draw_stuff(){
     glPopMatrix();
 
     glPushMatrix();
-    glTranslatef(-30.0, 0.0, 20.0);
-    draw_lance();
+    glTranslatef(-30.0, 5.0, 20.0);
+
+    glEnable(GL_COLOR_MATERIAL);
+    glColorMaterial(GL_FRONT, GL_SPECULAR);
+    glMaterialfv(GL_FRONT, GL_AMBIENT, whiteplastic_ambient);
+    glMaterialfv(GL_FRONT, GL_DIFFUSE, whiteplastic_diffuse);
+    glMaterialfv(GL_FRONT, GL_SPECULAR, whiteplastic_specular);
+    glMaterialf(GL_FRONT, GL_SHININESS, whiteplastic_shininess);
+
+    glColor3f(1.0, 1.0, 10.0);
+    glutSolidSphere(5.0, 12, 12);
+
+    // draw_lance();
     glPopMatrix();
 
 
 }
 /*draw scene*/
 void draw_scene(){
-    // draw_stuff();
+    draw_stuff();
 
     glPushMatrix();
     draw_robo();
@@ -1112,26 +1235,6 @@ void display()
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity(); /* Initialize modelview matrix */
 
-    // glPushMatrix();
-    // glLoadIdentity();
-    // glLightfv(GL_LIGHT1, GL_POSITION, lit1_position);
-    // glPopMatrix();
-
-    // gluLookAt(eye[0], eye[1], eye[2],
-    //           eye[0] - u[2][0], eye[1] - u[2][1], eye[2] - u[2][2],
-    //           u[1][0], u[1][1], u[1][2]);
-
-    // glPushMatrix();
-    // glTranslatef(eye[0] - u[2][0], 0.0, eye[2]);
-    // glPushMatrix();
-    // glTranslatef(lit_position[0], lit_position[1], lit_position[2]);
-    // glColor3f(1.0, 1.0, 1.0);
-    // glutWireSphere(0.5, 6, 6);
-    // glPopMatrix();
-    // // glEnable(GL_LIGHTING);
-    // glLightfv(GL_LIGHT0, GL_POSITION, lit_position);
-    // glLightfv(GL_LIGHT0, GL_SPOT_DIRECTION, lit_direction);
-    // glPopMatrix();
     /*-------Draw the base of the windmill which is a cube----*/
     switch (style)
     {
@@ -1197,6 +1300,7 @@ void display()
         draw_view();
         break;
     }
+    CheckLight();
     /*-------Swap the back buffer to the front --------*/
     glutSwapBuffers();
     glFlush(); /*--Display the results----*/
@@ -1600,6 +1704,366 @@ void my_keyboard(unsigned char key, int ix, int iy)
     display();
 }
 
+void CheckLight(){
+    if (isLightOn0 == 1)
+    {
+        glEnable(GL_LIGHT0);
+    }
+    else
+    {
+        glDisable(GL_LIGHT0);
+    }
+    if (isLightOn1 == 1)
+    {
+        glEnable(GL_LIGHT1);
+    }
+    else
+    {
+        glDisable(GL_LIGHT1);
+    }
+    if (isLightOn2 == 1)
+    {
+        glEnable(GL_LIGHT2);
+    }
+    else
+    {
+        glDisable(GL_LIGHT2);
+    }
+    if(isLightOn3 == 1){
+        glEnable(GL_LIGHT3);
+    }
+    else{
+        glDisable(GL_LIGHT3);
+    }
+    if(isLightOn4 == 1){
+        glEnable(GL_LIGHT4);
+    }
+    else{
+        glDisable(GL_LIGHT4);
+    }
+    if(isFancy){
+        srand(time(NULL));
+        lit2_diffuse[0] = (float)rand() / (float)(RAND_MAX / 1.0);
+        lit2_diffuse[1] = (float)rand() / (float)(RAND_MAX / 1.0);
+        lit2_diffuse[2] = (float)rand() / (float)(RAND_MAX / 1.0);
+        lit2_ambient[0] = 0.7;
+        lit2_ambient[1] = 0.7;
+        lit2_ambient[2] = 0.7;
+    }
+
+    // /*define light0 spot light */
+    glLightf(GL_LIGHT0, GL_SPOT_CUTOFF, lit_cutoff);
+    glLightf(GL_LIGHT0, GL_SPOT_EXPONENT, lit_exponent);
+    glLightfv(GL_LIGHT0, GL_DIFFUSE, lit_diffuse);
+    glLightfv(GL_LIGHT0, GL_SPECULAR, lit_specular);
+
+    // /*define light1 point light */
+    glLightfv(GL_LIGHT1, GL_AMBIENT, lit1_ambient);
+    glLightfv(GL_LIGHT1, GL_DIFFUSE, lit1_diffuse);
+    glLightfv(GL_LIGHT1, GL_SPECULAR, lit1_specular);
+    // glLightfv(GL_LIGHT1, GL_POSITION, lit1_position);
+
+    // /*define light2 directional light */
+    glLightfv(GL_LIGHT2, GL_DIFFUSE, lit2_diffuse);
+    glLightfv(GL_LIGHT2, GL_AMBIENT, lit2_ambient);
+    // glLightfv(GL_LIGHT2, GL_SPECULAR, lit_specular);
+    glPushMatrix();
+    glRotatef(Light2_ang, 0.0, 0.0, 1.0);
+    glLightfv(GL_LIGHT2, GL_POSITION, lit2_position);
+    glPopMatrix();
+
+    // /*define light3 ambient light */
+    glLightfv(GL_LIGHT3, GL_AMBIENT, lit3_ambient);
+    glLightfv(GL_LIGHT3, GL_DIFFUSE, lit3_diffuse);
+    glLightfv(GL_LIGHT3, GL_SPECULAR, lit3_specular);
+
+    // /*define light4 spot light */
+    glLightfv(GL_LIGHT4, GL_AMBIENT, lit4_ambient);
+    glLightfv(GL_LIGHT4, GL_DIFFUSE, lit4_diffuse);
+    glLightfv(GL_LIGHT4, GL_SPECULAR, lit4_specular);
+
+
+    // /*define global ambient light */
+    glLightModeli(GL_LIGHT_MODEL_LOCAL_VIEWER, GL_TRUE);
+    glLightModelfv(GL_LIGHT_MODEL_AMBIENT, global_ambient);
+    glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
+
+    glCullFace(GL_BACK);
+    glEnable(GL_CULL_FACE);
+}
+
+void MainMenu(int value){
+    switch(value){
+        case 0:
+            glShadeModel(GL_FLAT);
+            break;
+        case 1:
+            glShadeModel(GL_SMOOTH);
+            break;
+        case 2:
+            exit(0);
+            break;
+        case 3:
+            isLightOn3 *= -1;
+            break;
+        case 4:
+            isLightOn4 *= -1;
+            break;
+    }
+}
+
+void Light0Menu(int value){
+    switch(value){
+        case 0: //TURN ON/OFF
+            isLightOn0 *= -1;
+            break;
+        case 1: // add up cut off
+            if(lit_cutoff < 90){
+                lit_cutoff += 5;
+            }
+            break;
+        case 2:
+            if(lit_cutoff > 15){
+                lit_cutoff -= 5;
+            }
+            break;
+        case 3:
+            for (int i = 0; i < 3; i++){
+                if(lit_diffuse[i] > 0.0)
+                    lit_diffuse[i] -= 0.1;
+                if(lit_specular[i] > 0.0)
+                    lit_specular[i] -= 0.1;
+            }
+            break;
+        case 4:
+            for (int i = 0; i < 3; i++){
+                if (lit_diffuse[i] < 1.0)
+                    lit_diffuse[i] += 0.1;
+                if (lit_specular[i] < 1.0)
+                    lit_specular[i] += 0.1;
+            }
+            break;
+        case 5: //yellow
+            lit_diffuse[0] = 1.0;
+            lit_diffuse[1] = 1.0;
+            lit_diffuse[2] = 0.1;
+            lit_specular[0] = 0.7;
+            lit_specular[1] = 0.7;
+            lit_specular[2] = 0.7;
+            break;
+        case 6: //red
+            lit_diffuse[0] = 1.0;
+            lit_diffuse[1] = 0.1;
+            lit_diffuse[2] = 0.1;
+            lit_specular[0] = 0.7;
+            lit_specular[1] = 0.7;
+            lit_specular[2] = 0.7;
+            break;
+        case 7: //green
+            lit_diffuse[0] = 0.1;
+            lit_diffuse[1] = 1.0;
+            lit_diffuse[2] = 0.1;
+            lit_specular[0] = 0.7;
+            lit_specular[1] = 0.7;
+            lit_specular[2] = 0.7;
+            break;
+        case 8: //blue
+            lit_diffuse[0] = 0.1;
+            lit_diffuse[1] = 0.1;
+            lit_diffuse[2] = 1.0;
+            lit_specular[0] = 0.7;
+            lit_specular[1] = 0.7;
+            lit_specular[2] = 0.7;
+            break;
+        case 9: //white
+            lit_diffuse[0] = 1.0;
+            lit_diffuse[1] = 1.0;
+            lit_diffuse[2] = 1.0;
+            lit_specular[0] = 0.7;
+            lit_specular[1] = 0.7;
+            lit_specular[2] = 0.7;
+            break;
+    }
+}
+
+void Light1Menu(int value){
+    switch(value){
+        case 0: //TURN ON/OFF
+            isLightOn1 *= -1;
+            break;
+        case 1: //default
+            lit1_diffuse[0] = 0.3;
+            lit1_diffuse[1] = 0.3;
+            lit1_diffuse[2] = 0.3;
+            lit1_ambient[0] = 0.7;
+            lit1_ambient[1] = 0.7;
+            lit1_ambient[2] = 0.7;
+            lit1_specular[0] = 1.0;
+            lit1_specular[1] = 1.0;
+            lit1_specular[2] = 1.0;
+            break;
+        case 2: //white
+            lit1_diffuse[0] = 1.0;
+            lit1_diffuse[1] = 1.0;
+            lit1_diffuse[2] = 1.0;
+            lit1_ambient[0] = 0.7;
+            lit1_ambient[1] = 0.7;
+            lit1_ambient[2] = 0.7;
+            lit1_specular[0] = 1.0;
+            lit1_specular[1] = 1.0;
+            lit1_specular[2] = 1.0;
+            break;
+        case 3: //red
+            lit1_diffuse[0] = 1.0;
+            lit1_diffuse[1] = 0.1;
+            lit1_diffuse[2] = 0.1;
+            lit1_ambient[0] = 0.7;
+            lit1_ambient[1] = 0.7;
+            lit1_ambient[2] = 0.7;
+            lit1_specular[0] = 1.0;
+            lit1_specular[1] = 1.0;
+            lit1_specular[2] = 1.0;
+            break;
+        case 4: //green
+            lit1_diffuse[0] = 0.1;
+            lit1_diffuse[1] = 1.0;
+            lit1_diffuse[2] = 0.1;
+            lit1_ambient[0] = 0.7;
+            lit1_ambient[1] = 0.7;
+            lit1_ambient[2] = 0.7;
+            lit1_specular[0] = 1.0;
+            lit1_specular[1] = 1.0;
+            lit1_specular[2] = 1.0;
+            break;
+        case 5: //blue
+            lit1_diffuse[0] = 0.1;
+            lit1_diffuse[1] = 0.1;
+            lit1_diffuse[2] = 1.0;
+            lit1_ambient[0] = 0.7;
+            lit1_ambient[1] = 0.7;
+            lit1_ambient[2] = 0.7;
+            lit1_specular[0] = 1.0;
+            lit1_specular[1] = 1.0;
+            lit1_specular[2] = 1.0;
+            break;
+        case 6: //increase the intensity
+            if (lit1_diffuse[0] < 1.0)
+                lit1_diffuse[0] += 0.1;
+            if (lit1_diffuse[1] < 1.0)
+                lit1_diffuse[1] += 0.1;
+            if (lit1_diffuse[2] < 1.0)
+                lit1_diffuse[2] += 0.1;
+            break;
+        case 7: //decrease the intensity
+            if (lit1_diffuse[0] > 0.0)
+                lit1_diffuse[0] -= 0.1;
+            if (lit1_diffuse[1] > 0.0)
+                lit1_diffuse[1] -= 0.1;
+            if (lit1_diffuse[2] > 0.0)
+                lit1_diffuse[2] -= 0.1;
+            break;
+    }
+}
+
+void Light2Menu(int value){
+    switch(value){
+        case 0: //TURN ON/OFF
+            isLightOn2 *= -1;
+            break;
+        case 1: //default
+            isFancy = false;
+            lit2_diffuse[0] = 0.0;
+            lit2_diffuse[1] = 0.7;
+            lit2_diffuse[2] = 0.7;
+            lit2_ambient[0] = 0.0;
+            lit2_ambient[1] = 0.7;
+            lit2_ambient[2] = 0.7;
+            break;
+        case 2://white
+            isFancy = false;
+            lit2_diffuse[0] = 1.0;
+            lit2_diffuse[1] = 1.0;
+            lit2_diffuse[2] = 1.0;
+            lit2_ambient[0] = 0.7;
+            lit2_ambient[1] = 0.7;
+            lit2_ambient[2] = 0.7;
+            break;
+        case 3://red
+            isFancy = false;
+            lit2_diffuse[0] = 1.0;
+            lit2_diffuse[1] = 0.1;
+            lit2_diffuse[2] = 0.1;
+            lit2_ambient[0] = 0.7;
+            lit2_ambient[1] = 0.7;
+            lit2_ambient[2] = 0.7;
+            break;
+        case 4://green
+            isFancy = false;
+            lit2_diffuse[0] = 0.1;
+            lit2_diffuse[1] = 1.0;
+            lit2_diffuse[2] = 0.1;
+            lit2_ambient[0] = 0.7;
+            lit2_ambient[1] = 0.7;
+            lit2_ambient[2] = 0.7;
+            break;
+        case 5://blue
+            isFancy = false;
+            lit2_diffuse[0] = 0.1;
+            lit2_diffuse[1] = 0.1;
+            lit2_diffuse[2] = 1.0;
+            lit2_ambient[0] = 0.7;
+            lit2_ambient[1] = 0.7;
+            lit2_ambient[2] = 0.7;
+            break;
+        case 6: //fancy
+            isFancy = true;
+            break;
+    }
+}
+
+void createMenu(){
+    int SpotLightMenu = glutCreateMenu(Light0Menu);
+    glutAddMenuEntry("Turn On/Off", 0);
+    glutAddMenuEntry("Add up cut off", 1);
+    glutAddMenuEntry("Add down cut off", 2);
+    glutAddMenuEntry("low down the intensity", 3);
+    glutAddMenuEntry("add up the intensity", 4);
+    glutAddMenuEntry("yellow (default)", 5);
+    glutAddMenuEntry("red", 6);
+    glutAddMenuEntry("green", 7);
+    glutAddMenuEntry("blue", 8);
+    glutAddMenuEntry("white", 9);
+
+    int PointLightMenu = glutCreateMenu(Light1Menu);
+    glutAddMenuEntry("Turn On/Off", 0);
+    glutAddMenuEntry("default color", 1);
+    glutAddMenuEntry("white", 2);
+    glutAddMenuEntry("red", 3);
+    glutAddMenuEntry("green", 4);
+    glutAddMenuEntry("blue", 5);
+    glutAddMenuEntry("increase the intensity", 6);
+    glutAddMenuEntry("decrease the intensity", 7);
+
+    int DirectionalLightMenu = glutCreateMenu(Light2Menu);
+    glutAddMenuEntry("Turn On/Off", 0);
+    glutAddMenuEntry("default color", 1);
+    glutAddMenuEntry("white", 2);
+    glutAddMenuEntry("red", 3);
+    glutAddMenuEntry("green", 4);
+    glutAddMenuEntry("blue", 5);
+    glutAddMenuEntry("fancy", 6);
+
+    int LightMenu = glutCreateMenu(MainMenu);
+    glutAddSubMenu("Spot Light", SpotLightMenu);
+    glutAddSubMenu("Point Light", PointLightMenu);
+    glutAddSubMenu("Directional Light", DirectionalLightMenu);
+    glutAddMenuEntry("Flat Shading", 0);
+    glutAddMenuEntry("Smooth Shading", 1);
+    glutAddMenuEntry("Exit", 2);
+    glutAddMenuEntry("fire Emission Turn On/Off", 4);
+    glutAttachMenu(GLUT_RIGHT_BUTTON);
+}
+
 // Check boundary condition
 bool CheckBoundary()
 {
@@ -1760,7 +2224,7 @@ void Move()
 
 void movement()
 {
-    spin = (spin + 5) % 360;
+    spin = (spin + 1) % 360;
     if (mode == STOP)
     {
         if (!stop)
@@ -2034,6 +2498,12 @@ void specialKey(int key, int x, int y)
     case GLUT_KEY_RIGHT:
         turn_ang = (turn_ang - 90) % 360;
         break;
+    case GLUT_KEY_UP:
+        Light2_ang = (Light2_ang + 10) % 360;
+        break;
+    case GLUT_KEY_DOWN:
+        Light2_ang = (Light2_ang - 10) % 360;
+        break;
     }
 }
 
@@ -2061,6 +2531,7 @@ int main(int argc, char **argv)
     glutMouseFunc(mouse);
     glutIdleFunc(movement);
     glutSpecialFunc(specialKey);
+    createMenu();
 
     glutMainLoop();
     return 1;

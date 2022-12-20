@@ -1,8 +1,2 @@
-    nl = nleft;
-    nr = nright;
-    nt = ntop ;
-    nb = nbottom ;
-    fleft = nleft * (my_far / my_near) ;
-    fright = nright * (my_far / my_near) ;
-    ftop = ntop * (my_far / my_near) ;
-    fbottom = nbottom * (my_far / my_near) ;
+    // for(int i = 0; i < 4; i++)
+    //     normals[i] *= -1;
