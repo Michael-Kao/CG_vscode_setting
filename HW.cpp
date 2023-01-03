@@ -6,6 +6,8 @@
  */
 #include <GL/glut.h>
 #include <bits/stdc++.h>
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
 
 using namespace std;
 
@@ -170,6 +172,11 @@ float whiteplastic_shininess = 32.0;
 /*----Some global variables for transformation------*/
 float lit_angle = 0.0;
 
+/*texture mapping*/
+unsigned int texture[10];
+int t_width, t_height, t_nrC;
+bool obs = false;
+
 void draw_sword();
 void draw_lance();
 void draw_stuff();
@@ -188,7 +195,55 @@ void FindNormal(float *normals, float *p1, float *p2, float *p3){
     return;
 }
 
+unsigned char *GetTexture(char *filename){
+    unsigned char *data;
+    data = stbi_load(filename, &t_width, &t_height, &t_nrC, 0);
+    return data;
+}
 
+void TextureInit(){
+    unsigned char *floor = GetTexture("container.jpg");
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+    glGenTextures(10, texture);
+    glBindTexture(GL_TEXTURE_2D, texture[0]);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, t_width, t_height, 0, GL_RGB, GL_UNSIGNED_BYTE, floor);
+
+    unsigned char *earth = GetTexture("earth.jpg");
+    glBindTexture(GL_TEXTURE_2D, texture[1]);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, t_width, t_height, 0, GL_RGB, GL_UNSIGNED_BYTE, earth);
+
+    unsigned char *tnt = GetTexture("tnt.png");
+    glBindTexture(GL_TEXTURE_2D, texture[2]);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, t_width, t_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, tnt);
+
+    unsigned char *tntface = GetTexture("tntface.png");
+    glBindTexture(GL_TEXTURE_2D, texture[3]);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, t_width, t_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, tntface);
+}
 
 /*----------------------------------------------------------
  * Procedure to initialize the working environment.
@@ -205,6 +260,7 @@ void myinit()
     glEnable(GL_NORMALIZE);  /*Enable automatic normalization of normal vectors */
     glEnable(GL_LIGHTING);   /*Enable lighting */
     CheckLight();            /*Enable light sources */
+    TextureInit();
 
     if (cylind == NULL)
     { /* allocate a quadric object, if necessary */
@@ -488,10 +544,22 @@ void draw_ret()
     {
         FindNormal(normals, points[face[i][0]], points[face[i][1]], points[face[i][2]]);
         glNormal3fv(normals);
+
+        if((normals[0] == 0.0) && (normals[1] == 0.0 && obs))
+            glBindTexture(GL_TEXTURE_2D, texture[3]);
+        else
+            glBindTexture(GL_TEXTURE_2D, texture[2]);
+        
+        glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+
         glBegin(GL_POLYGON); /* Draw the face */
+        glTexCoord2f(0.0, 0.0);
         glVertex3fv(points[face[i][0]]);
+        glTexCoord2f(0.0, 1.0);
         glVertex3fv(points[face[i][1]]);
+        glTexCoord2f(1.0, 1.0);
         glVertex3fv(points[face[i][2]]);
+        glTexCoord2f(1.0, 0.0);
         glVertex3fv(points[face[i][3]]);
         glEnd();
     }
@@ -509,19 +577,28 @@ void draw_floor()
     glMaterialfv(GL_FRONT, GL_DIFFUSE, flr_diffuse);
     glMaterialfv(GL_FRONT, GL_AMBIENT, flr_ambient);
     glMaterialfv(GL_FRONT, GL_SPECULAR, flr_specular);
+
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, texture[0]);
+    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+
     glNormal3f(0.0, 1.0, 0.0);
 
-    for (i = -100; i < 100; i++){
-        for (j = -100; j < 100; j++)
+    for (i = -1; i < 1; i++){
+        for (j = -1; j < 1; j++)
         {
             // if ((i + j) % 2 == 0) glColor3f(0.9, 0.9, 0.9);
             /*else*/ 
-            glColor3f(0.3, 0.1, 0.1);
+            glColor3f(0.9, 0.9, 0.9);
             glBegin(GL_POLYGON);
-            glVertex3f(i, 0.0, j);
-            glVertex3f(i, 0.0, j + 1);
-            glVertex3f(i + 1, 0.0, j + 1);
-            glVertex3f(i + 1, 0.0, j);
+            glTexCoord2f(0.0, 0.0);
+            glVertex3f(i * 100.0, 0.0, j * 100.0);
+            glTexCoord2f(0.0, 1.0);
+            glVertex3f(i * 100.0, 0.0, (j + 1) * 100.0);
+            glTexCoord2f(1.0, 1.0);
+            glVertex3f((i + 1) * 100.0, 0.0, (j + 1) * 100.0);
+            glTexCoord2f(1.0, 0.0);
+            glVertex3f((i + 1) * 100.0, 0.0, j * 100.0);
             glEnd();
         }
     }
@@ -547,8 +624,10 @@ void draw_robo()
     glMaterialf(GL_FRONT, GL_SHININESS, obs_shininess);
     // glMaterialfv(GL_FRONT, GL_EMISSION, robot_emission);
 
+    obs = true;
     glColor3f(0.35, 0.3, 0.25); //gray like rock
     draw_ret();
+    obs = false;
 
     glDisable(GL_COLOR_MATERIAL);
 
@@ -889,20 +968,22 @@ void draw_robo()
 
     glLightfv(GL_LIGHT4, GL_POSITION, lit4_position);/////////////////////////////////RRRRRRRRRRRRRRRRRRRRRRRRR
     glEnable(GL_COLOR_MATERIAL);
-    glColorMaterial(GL_FRONT, GL_SPECULAR);
-    glMaterialfv(GL_FRONT, GL_AMBIENT, redplastic_ambient);
-    glMaterialfv(GL_FRONT, GL_DIFFUSE, redplastic_diffuse);
-    glMaterialfv(GL_FRONT, GL_SPECULAR, redplastic_specular);
+    glColorMaterial(GL_FRONT, GL_AMBIENT_AND_DIFFUSE);
+    glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, redplastic_ambient);
+    glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, redplastic_diffuse);
+    glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, redplastic_specular);
     glMaterialf(GL_FRONT, GL_SHININESS, redplastic_shininess);
     if(isLightOn4 == 1){
-        glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, light_emission);
+        glMaterialfv(GL_FRONT, GL_EMISSION, light_emission);
     }
     else if(isLightOn4 == -1){
-        glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, no_emission);
+        glMaterialfv(GL_FRONT, GL_EMISSION, no_emission);
     }
 
     glColor3f(1.0, 0.0, 0.0);
     glutSolidCube(1.0);
+    // gluSphere(sphere, 2.0, 12, 12);
+    // glutSolidSphere(2.0, 12, 12);
 
 
     glDisable(GL_COLOR_MATERIAL);
@@ -1198,6 +1279,10 @@ void draw_stuff(){
 
     glPushMatrix();
     glTranslatef(-30.0, 5.0, 20.0);
+    glRotatef(spin, 0.0, 1.0, 0.0);
+
+    glBindTexture(GL_TEXTURE_2D, texture[1]);
+    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 
     glEnable(GL_COLOR_MATERIAL);
     glColorMaterial(GL_FRONT, GL_SPECULAR);
@@ -1206,8 +1291,10 @@ void draw_stuff(){
     glMaterialfv(GL_FRONT, GL_SPECULAR, whiteplastic_specular);
     glMaterialf(GL_FRONT, GL_SHININESS, whiteplastic_shininess);
 
-    glColor3f(1.0, 1.0, 10.0);
-    glutSolidSphere(5.0, 12, 12);
+    gluQuadricTexture(sphere, GL_TRUE);
+    glColor3f(1.0, 1.0, 1.0);
+    gluSphere(sphere, 5.0, 12, 12);
+    // glutSolidSphere(5.0, 12, 12);
 
     // draw_lance();
     glPopMatrix();
