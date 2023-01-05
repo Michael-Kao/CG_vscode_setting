@@ -64,7 +64,7 @@ double Eye[3] = {0.0, 30.0, 20.0}, Focus[3] = {0.0, 0.0, 0.0},
 float u[3][3] = {{1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}};
 float eye[3];
 float cv, sv; /* cos(5.0) and sin(5.0) */
-float my_near = 1.5, my_far = 60.0;
+float my_near = 1.5, my_far = 90.0;
 float ntop, nleft, nright, nbottom;
 float nzoom[4][4] = {{-40.0, 40.0, -40.0, 40}, {-40.0, 40.0, -40.0, 40}, {-40.0, 40.0, -40.0, 40}, {-40.0, 40.0, -40.0, 40}};
 int zoom_mode = 1;
@@ -169,6 +169,8 @@ float whiteplastic_diffuse[] = {0.55, 0.55, 0.55, 1.0};
 float whiteplastic_specular[] = {0.7, 0.7, 0.7, 1.0};
 float whiteplastic_shininess = 32.0;
 
+float mat_diffuse[] = {0.8, 0.8, 0.8, 1.0};
+
 /*----Some global variables for transformation------*/
 float lit_angle = 0.0;
 
@@ -177,10 +179,31 @@ unsigned int texture[10];
 int t_width, t_height, t_nrC;
 bool obs = false;
 
+/*billboard*/
+float mtx[16];
+float a[3], b[3];//the axes of the billboard
+
 void draw_sword();
 void draw_lance();
 void draw_stuff();
 void CheckLight();
+
+void compute_ab_axes(){
+    float w0, w2;
+    double len;
+
+    w0 = mtx[2];
+    w2 = mtx[10];
+
+    len = sqrt(w0 * w0 + w2 * w2);
+
+    b[0] = 0.0;
+    b[1] = 1.0;
+    b[2] = 0.0;
+    a[0] = w2 / len;
+    a[1] = 0.0;
+    a[2] = -w0 / len;
+}
 
 void FindNormal(float *normals, float *p1, float *p2, float *p3){
     float v1[3], v2[3];
@@ -243,6 +266,187 @@ void TextureInit(){
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, t_width, t_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, tntface);
+
+    unsigned char *wall = GetTexture("wall.jpg");
+    glBindTexture(GL_TEXTURE_2D, texture[4]);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, t_width, t_height, 0, GL_RGB, GL_UNSIGNED_BYTE, wall);
+
+    unsigned char *sky = GetTexture("sky.jpg");
+    glBindTexture(GL_TEXTURE_2D, texture[5]);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, t_width, t_height, 0, GL_RGB, GL_UNSIGNED_BYTE, sky);
+
+    unsigned char *gun = GetTexture("gun.jpg");
+    glBindTexture(GL_TEXTURE_2D, texture[6]);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, t_width, t_height, 0, GL_RGB, GL_UNSIGNED_BYTE, gun);
+
+    unsigned char *picture = GetTexture("picture.jpg");
+    glBindTexture(GL_TEXTURE_2D, texture[7]);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, t_width, t_height, 0, GL_RGB, GL_UNSIGNED_BYTE, picture);
+
+    unsigned char *paint = GetTexture("paint.jpg");
+    glBindTexture(GL_TEXTURE_2D, texture[8]);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, t_width, t_height, 0, GL_RGB, GL_UNSIGNED_BYTE, paint);
+}
+
+/*--------------------------------------------------------
+ * Procedure to draw a billboard, center=[x,z], width=w,
+ * height = h;
+ */
+void draw_billboard(float x, float z, float w, float h) {
+    float v0[3], v1[3], v2[3], v3[3];
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    glEnable(GL_ALPHA_TEST);
+    glAlphaFunc(GL_GREATER, 0.5);
+    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+
+    /*----Compute the 4 vertices of the billboard ----*/
+    v0[0] = x - (w / 2) * a[0];
+    v0[1] = 0.0;
+    v0[2] = z - (w / 2) * a[2];
+    v1[0] = x + (w / 2) * a[0];
+    v1[1] = 0.0;
+    v1[2] = z + (w / 2) * a[2];
+    v2[0] = x + (w / 2) * a[0];
+    v2[1] = h;
+    v2[2] = z + (w / 2) * a[2];
+    v3[0] = x - (w / 2) * a[0];
+    v3[1] = h;
+    v3[2] = z - (w / 2) * a[2];
+
+    glBegin(GL_QUADS);
+    glTexCoord2f(0.0, 0.0);
+    glVertex3fv(v0);
+    glTexCoord2f(1.0, 0.0);
+    glVertex3fv(v1);
+    glTexCoord2f(1.0, 1.0);
+    glVertex3fv(v2);
+    glTexCoord2f(0.0, 1.0);
+    glVertex3fv(v3);
+    glEnd();
+    glDisable(GL_ALPHA_TEST);
+    glDisable(GL_BLEND);
+}
+
+void MyBillboard(){
+    glEnable(GL_TEXTURE_2D);
+    glGetFloatv(GL_MODELVIEW_MATRIX, mtx);
+    compute_ab_axes();
+
+    glMaterialfv(GL_FRONT, GL_DIFFUSE, mat_diffuse);
+
+    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+
+    glPushMatrix();
+    glTranslatef(0.0, 100.0, 0.0);
+    glRotatef(180.0, 0.0, 0.0, 1.0);
+    glBindTexture(GL_TEXTURE_2D, texture[4]);
+    draw_billboard((0.0) * 4.0, (-5.0) * 4.0, 200.0, 100.0);
+    glPopMatrix();
+
+    glPushMatrix();
+    glTranslatef(0.0, 50.0, 0.0);
+    glRotatef(180.0, 0.0, 0.0, 1.0);
+    glBindTexture(GL_TEXTURE_2D, texture[6]);
+    draw_billboard((0.0) * 4.0, (-4.0) * 4.0, 50.0, 30.0);
+    glPopMatrix();
+
+    glPushMatrix();
+    glTranslatef(-60.0, 50.0, 0.0);
+    glRotatef(180.0, 0.0, 0.0, 1.0);
+    glBindTexture(GL_TEXTURE_2D, texture[7]);
+    draw_billboard((0.0) * 4.0, (-4.0) * 4.0, 15.0, 20.0);
+    glPopMatrix();
+
+    glPushMatrix();
+    glTranslatef(50.0, 20.0, 0.0);
+    glRotatef(180.0, 0.0, 0.0, 1.0);
+    glBindTexture(GL_TEXTURE_2D, texture[8]);
+    draw_billboard((0.0) * 4.0, (-4.0) * 4.0, 15.0, 20.0);
+    glPopMatrix();
+
+    glDisable(GL_TEXTURE_2D);
+}
+
+void draw_quad(){
+    glNormal3f(0.0, 1.0, 0.0);
+    for (int i = -10; i < 10; i++){
+        for (int j = -10; j < 10; j++){
+            glBegin(GL_QUADS);
+            glTexCoord2f(0.0, 0.0);
+            glVertex3f(i * 40.0, 0.0, j * 40.0);
+            glTexCoord2f(0.0, 1.0);
+            glVertex3f(i * 40.0, 0.0, (j + 1) * 40.0);
+            glTexCoord2f(1.0, 1.0);
+            glVertex3f((i + 1) * 40.0, 0.0, (j + 1) * 40.0);
+            glTexCoord2f(1.0, 0.0);
+            glVertex3f((i + 1) * 40.0, 0.0, j * 40.0);
+            glEnd();
+        }
+    }
+}
+
+void skybox(){
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, texture[5]);
+
+    glPushMatrix();
+    glTranslatef(0.0, 70.0, 0.0);
+    glRotatef(180, 1.0, 0.0, 0.0);
+    draw_quad();
+    glPopMatrix();
+
+    glPushMatrix();
+    glTranslatef(-100.0, 0.0, 0.0);
+    glRotatef(-90, 0.0, 0.0, 1.0);
+    draw_quad();
+    glPopMatrix();
+
+    glPushMatrix();
+    glTranslatef(100.0, 0.0, 0.0);
+    glRotatef(90, 0.0, 0.0, 1.0);
+    draw_quad();
+    glPopMatrix();
+
+    glPushMatrix();
+    glTranslatef(0.0, 0.0, 100.0);
+    glRotatef(-90, 1.0, 0.0, 0.0);
+    draw_quad();
+    glPopMatrix();
+
+    glDisable(GL_TEXTURE_2D);
 }
 
 /*----------------------------------------------------------
@@ -476,7 +680,7 @@ void draw_view()
         glDisable(GL_LIGHTING);
         glDisable(GL_CULL_FACE);
         glColor3f(1.0, 1.0, 0.5);
-        glutSolidSphere(3.5, 12, 12);
+        // glutSolidSphere(3.5, 12, 12);
         glPopMatrix();
         glEnable(GL_LIGHTING);
         glEnable(GL_CULL_FACE);
@@ -537,6 +741,8 @@ void draw_axes()
  */
 void draw_ret()
 {
+    if(obs)
+        glEnable(GL_TEXTURE_2D);
     int i;
 
     float normals[4];
@@ -563,6 +769,7 @@ void draw_ret()
         glVertex3fv(points[face[i][3]]);
         glEnd();
     }
+    glDisable(GL_TEXTURE_2D);
 }
 
 /*------------------------------------------------------------
@@ -603,6 +810,7 @@ void draw_floor()
         }
     }
     glDisable(GL_COLOR_MATERIAL);
+    glDisable(GL_TEXTURE_2D);
 }
 
 // Draw robot
@@ -1278,6 +1486,7 @@ void draw_stuff(){
     glPopMatrix();
 
     glPushMatrix();
+    glEnable(GL_TEXTURE_2D);
     glTranslatef(-30.0, 5.0, 20.0);
     glRotatef(spin, 0.0, 1.0, 0.0);
 
@@ -1297,8 +1506,8 @@ void draw_stuff(){
     // glutSolidSphere(5.0, 12, 12);
 
     // draw_lance();
+    glDisable(GL_TEXTURE_2D);
     glPopMatrix();
-
 
 }
 /*draw scene*/
@@ -1388,6 +1597,8 @@ void display()
         break;
     }
     CheckLight();
+    MyBillboard();
+    skybox();
     /*-------Swap the back buffer to the front --------*/
     glutSwapBuffers();
     glFlush(); /*--Display the results----*/

@@ -1,2 +1,4 @@
-    // for(int i = 0; i < 4; i++)
-    //     normals[i] *= -1;
+    // glMatrixMode(GL_TEXTURE);
+    // glLoadIdentity();
+    // glTranslatef(0.0, 0.0, 0.0);
+    // glMatrixMode(GL_MODELVIEW);
